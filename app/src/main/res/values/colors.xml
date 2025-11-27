@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<resources>
+    <color name="whiteText">#FFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="textColor">#3C2F2F</color>
+    <color name="orange">#F57C00</color>
+    <color name="gray">#808080</color>
+    <color name="softerOrange">#FFB74D</color>
+    <color name="red">#D94F4F</color>
+    <color name="editeText">#b6b6b5</color>
+    <color name="editeTextHint">#FFB74D</color>
+
+</resources>

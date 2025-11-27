@@ -1,0 +1,41 @@
+<resources>
+    <string name="app_name">RecipeBook</string>
+    <string name="welcome">Ласкаво просило до</string>
+
+    <string name="description">Найкращий додаток для кулінарії та рецептів їжі століття.</string>
+    <string name="recipeBook">Recipe Book</string>
+
+    <string name="buttonLogin">Почати Роботу</string>
+    <string name="buttonRegistration_edit">Створити акаунт</string>
+    <string name="buttonRegistration">У мене вже є обліковий запис</string>
+
+    <string name="textEmail">Email</string>
+    <string name="textUserName">User name</string>
+    <string name="textPassword">Password</string>
+    <string name="textPassword2"> Repeat password</string>
+
+
+
+
+    <string name="textView_registration">Створіть свій акаунт</string>
+    <string name="textView_login">Авторизація</string>
+    <string name="button_register">Реєстрація</string>
+
+    <string name="texView_menu_create">Створіть свій рецепт</string>
+    <string name="texView_menu_create_AddTitle">Назва блюда</string>
+    <string name="texView_menu_create_AddPhoto">Додай фотографії</string>
+    <string name="texView_menu_create_AddDescription">Додайте опис</string>
+    <string name="texView_menu_create_AddIngredients">Додай інгрідієнти</string>
+    <string name="texView_menu_create_AddInstruction">Додай інструкцію</string>
+
+
+
+
+    <string name="action_sign_in">Sign in or register</string>
+    <string name="action_sign_in_short">Sign in</string>
+    <string name="invalid_username">Not a valid username</string>
+    <string name="invalid_password">Password must be >5 characters</string>
+    <string name="login_failed">"Login failed"</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>

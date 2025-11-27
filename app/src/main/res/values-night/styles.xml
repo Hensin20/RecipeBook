@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="TextEdit">
+        <item name="android:textColor">@color/whiteText</item>
+        <item name="android:textColorHint">@color/editeText</item>
+        <item name="scaleFromTextSize">18dp</item>
+        <item name="fontFamily">@font/opensans_bold</item>
+
+    </style>
+
+
+</resources>
