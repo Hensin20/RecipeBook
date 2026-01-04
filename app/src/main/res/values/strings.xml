@@ -25,7 +25,7 @@
     <string name="texView_menu_create_AddTitle">Назва блюда</string>
     <string name="texView_menu_create_AddPhoto">Додай фотографії</string>
     <string name="texView_menu_create_AddDescription">Додайте опис</string>
-    <string name="texView_menu_create_AddIngredients">Додай інгрідієнти</string>
+    <string name="texView_menu_create_AddIngredients">Введіть інгрідієнт</string>
     <string name="texView_menu_create_AddInstruction">Додай інструкцію</string>
 
 
