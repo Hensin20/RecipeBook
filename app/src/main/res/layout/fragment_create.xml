@@ -54,6 +54,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 app:counterEnabled="true"
+                app:hintEnabled="false"
                 app:counterMaxLength="50">
             <EditText
                 android:id="@+id/editTextText_title"
@@ -66,7 +67,8 @@
                 android:inputType="text"
                 android:textColor="@color/whiteText"
                 android:background="@drawable/background_edittext"
-                android:text="Напиклад, овощний салат" />
+                android:hint="Напиклад, овощний салат"
+                android:textColorHint="@color/gray"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -80,6 +82,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
+                app:hintEnabled="false"
                 app:counterEnabled="true"
                 app:counterMaxLength="200">
             <EditText
@@ -96,7 +99,8 @@
                 android:inputType="textMultiLine"
                 android:textColor="@color/whiteText"
                 android:background="@drawable/background_edittext"
-                android:text="Придумайте щось апетитне для опису " />
+                android:hint="Придумайте щось апетитне для опису "
+                android:textColorHint="@color/gray"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -107,20 +111,49 @@
                 android:textSize="18sp"
                 android:fontFamily="@font/opensans_bold"/>
 
-            <com.google.android.material.textfield.TextInputLayout
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_margin="10dp"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
 
                 <AutoCompleteTextView
                     android:id="@+id/ingredient_input"
-                    android:textColorHint="@color/whiteText"
-                    android:layout_width="match_parent"
+                    android:layout_width="198dp"
+                    android:layout_marginStart="10dp"
                     android:layout_height="wrap_content"
                     android:background="@drawable/background_edittext"
+                    android:hint="@string/texView_menu_create_AddIngredients"
                     android:textColor="@color/whiteText"
-                    android:hint="@string/texView_menu_create_AddIngredients"/>
-            </com.google.android.material.textfield.TextInputLayout>
+                    android:textColorHint="@color/gray" />
+
+                <EditText
+                    android:id="@+id/ingredient_quantity_input"
+                    android:layout_width="113dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="3dp"
+                    android:background="@drawable/background_edittext"
+                    android:hint="@string/texView_menu_create_AddIngredients_quantity"
+                    android:textColor="@color/whiteText"
+                    android:textColorHint="@color/gray"
+                    android:textSize="16sp" />
+
+                <ImageView
+                    android:id="@+id/imageView_addIngredient"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_weight="1"
+                    android:src="@drawable/icon_plus" />
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:id="@+id/ingredientListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:padding="8dp">
+
+            </LinearLayout>
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupIngredients"
