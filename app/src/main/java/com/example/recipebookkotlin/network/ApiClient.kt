@@ -1,5 +1,6 @@
 package com.example.recipebookkotlin.network
 import com.example.recipebookkotlin.api.AuthApi
+import com.example.recipebookkotlin.api.IngredientApi
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -15,5 +16,9 @@ object ApiClient {
     }
     val authApi: AuthApi by lazy {
         retrofit.create(AuthApi::class.java)
+    }
+
+    val ingredientApi: IngredientApi by lazy {
+        retrofit.create(IngredientApi::class.java)
     }
 }

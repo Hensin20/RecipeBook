@@ -122,6 +122,7 @@
                     android:layout_marginStart="10dp"
                     android:layout_height="wrap_content"
                     android:background="@drawable/background_edittext"
+                    android:inputType="text"
                     android:hint="@string/texView_menu_create_AddIngredients"
                     android:textColor="@color/whiteText"
                     android:textColorHint="@color/gray" />
