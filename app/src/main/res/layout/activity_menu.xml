@@ -26,6 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@android:color/transparent"
+        app:itemActiveIndicatorStyle="@style/App.CustomIndicator"
         app:itemIconTint="@color/nav_icon_selector"
         app:itemTextColor="@color/nav_item_text_selector"
         app:labelVisibilityMode="labeled"

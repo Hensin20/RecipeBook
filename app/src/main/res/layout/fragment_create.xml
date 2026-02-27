@@ -2,6 +2,7 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/gradient_background"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".FragmentCreate">
@@ -32,6 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
                 android:text="@string/texView_menu_create_AddPhoto"
+                android:textColor="@color/textColor"
                 android:textSize="18sp"
                 android:fontFamily="@font/opensans_bold"/>
 
@@ -46,6 +48,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
+                android:textColor="@color/textColor"
                 android:text="@string/texView_menu_create_AddTitle"
                 android:textSize="18sp"
                 android:fontFamily="@font/opensans_bold"/>
@@ -65,7 +68,7 @@
                 android:ems="20"
                 android:maxLength="50"
                 android:inputType="text"
-                android:textColor="@color/whiteText"
+                android:textColor="@color/editeText"
                 android:background="@drawable/background_edittext"
                 android:hint="Напиклад, овощний салат"
                 android:textColorHint="@color/gray"/>
@@ -75,6 +78,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
+                android:textColor="@color/textColor"
                 android:text="@string/texView_menu_create_AddDescription"
                 android:textSize="18sp"
                 android:fontFamily="@font/opensans_bold"/>
@@ -85,30 +89,61 @@
                 app:hintEnabled="false"
                 app:counterEnabled="true"
                 app:counterMaxLength="200">
-            <EditText
-                android:id="@+id/editTextText_description"
+
+                <EditText
+                    android:id="@+id/editTextText_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="10dp"
+                    android:background="@drawable/background_edittext"
+                    android:ems="20"
+                    android:gravity="start"
+                    android:hint="Придумайте щось апетитне для опису "
+                    android:inputType="textMultiLine"
+                    android:maxLength="200"
+                    android:maxLines="8"
+                    android:minLines="5"
+                    android:textColor="@color/editeText"
+                    android:textColorHint="@color/gray"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <TextView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:minLines="5"
-                android:maxLines="8"
-                android:textSize="16sp"
-                android:gravity="start"
-                android:layout_margin="10dp"
-                android:ems="20"
-                android:maxLength="200"
-                android:inputType="textMultiLine"
-                android:textColor="@color/whiteText"
-                android:background="@drawable/background_edittext"
-                android:hint="Придумайте щось апетитне для опису "
-                android:textColorHint="@color/gray"/>
+                android:layout_height="wrap_content"
+                android:textColor="@color/textColor"
+                android:layout_marginStart="15dp"
+                android:text="@string/texView_menu_create_AddCategory"
+                android:textSize="18sp"
+                android:fontFamily="@font/opensans_bold"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/menu_categoty"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                app:boxStrokeColor="@color/orange"
+                app:boxStrokeWidth="2dp"
+
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp">
+
+                <AutoCompleteTextView
+                    android:id="@+id/autoCompleteCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/editeText"
+                    android:inputType="text" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="15dp"
+                android:textColor="@color/textColor"
                 android:text="@string/texView_menu_create_AddIngredients"
                 android:textSize="18sp"
+                android:layout_marginTop="10dp"
                 android:fontFamily="@font/opensans_bold"/>
 
             <LinearLayout
@@ -119,12 +154,12 @@
                 <AutoCompleteTextView
                     android:id="@+id/ingredient_input"
                     android:layout_width="198dp"
-                    android:layout_marginStart="10dp"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
                     android:background="@drawable/background_edittext"
-                    android:inputType="text"
                     android:hint="@string/texView_menu_create_AddIngredients"
-                    android:textColor="@color/whiteText"
+                    android:inputType="text"
+                    android:textColor="@color/editeText"
                     android:textColorHint="@color/gray" />
 
                 <EditText
@@ -134,7 +169,7 @@
                     android:layout_marginStart="3dp"
                     android:background="@drawable/background_edittext"
                     android:hint="@string/texView_menu_create_AddIngredients_quantity"
-                    android:textColor="@color/whiteText"
+                    android:textColor="@color/editeText"
                     android:textColorHint="@color/gray"
                     android:textSize="16sp" />
 
@@ -163,6 +198,62 @@
                 app:singleLine="false"
                 app:chipSpacing="8dp"/>
 
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:textColor="@color/editeText"
+                android:text="@string/texView_menu_create_AddInstruction"
+                android:textSize="18sp"
+                android:fontFamily="@font/opensans_bold"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:hintEnabled="false"
+                app:counterEnabled="true"
+                app:counterMaxLength="500">
+
+                <EditText
+                    android:id="@+id/editTextText_instruction"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:minLines="5"
+                    android:maxLines="8"
+                    android:textSize="16sp"
+                    android:gravity="start"
+                    android:layout_margin="10dp"
+                    android:ems="20"
+                    android:maxLength="200"
+                    android:inputType="textMultiLine"
+                    android:textColor="@color/editeText"
+                    android:background="@drawable/background_edittext"
+                    android:hint="Напиши покрокову інструкцію "
+                    android:textColorHint="@color/gray"/>
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/buttonLogin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:backgroundTint="@color/orange"
+                    android:elevation="10dp"
+                    android:textColor="@color/buttonTextColor"
+                    android:fontFamily="@font/opensans_bold"
+                    android:text="@string/button_menu_create_post"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHorizontal_bias="0.498"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView_recipeBook" />
+
+
+            </LinearLayout>
 
 
         </LinearLayout>

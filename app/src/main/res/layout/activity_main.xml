@@ -62,6 +62,7 @@
         android:backgroundTint="@color/orange"
         android:elevation="10dp"
         android:fontFamily="@font/opensans_bold"
+        android:textColor="@color/buttonTextColor"
         android:text="@string/buttonLogin"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"

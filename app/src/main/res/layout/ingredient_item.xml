@@ -19,7 +19,7 @@
             android:layout_height="wrap_content"
             android:layout_margin="5dp"
             android:text="name"
-            android:textColor="@color/whiteText"/>
+            android:textColor="@color/editeText"/>
 
         <TextView
             android:id="@+id/ingredientQuantity"
@@ -28,7 +28,7 @@
             android:layout_margin="5dp"
             android:layout_weight="1"
             android:text="quantity"
-            android:textColor="@color/whiteText" />
+            android:textColor="@color/editeText" />
 
         <ImageView
             android:id="@+id/deleteButton"
@@ -37,6 +37,6 @@
             android:layout_margin="5dp"
             android:layout_weight="0.1"
             android:layout_gravity="end"
-            app:srcCompat="@drawable/icon_delete" />
+            android:src="@android:drawable/ic_menu_close_clear_cancel" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
