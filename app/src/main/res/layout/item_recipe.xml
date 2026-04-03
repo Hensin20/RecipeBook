@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    android:background="@drawable/background_edittext"
+    android:padding="10dp"
+    android:elevation="4dp">
+
+    <ImageView
+        android:id="@+id/imageView_recipeThumb"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:background="#E0E0E0"
+        android:clipToOutline="true" />
+
+    <TextView
+        android:id="@+id/textView_recipeTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:fontFamily="@font/opensans_bold"
+        android:textColor="@color/textColor"
+        android:textSize="20sp"
+        android:text="Назва рецепту" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:id="@+id/textView_recipeCategory"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/orange"
+            android:textStyle="bold"
+            android:text="Категорія" />
+
+        <TextView
+            android:id="@+id/textView_recipeAuthor"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:textColor="@color/gray"
+            android:text="Автор" />
+    </LinearLayout>
+
+</LinearLayout>

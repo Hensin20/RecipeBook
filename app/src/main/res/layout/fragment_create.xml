@@ -37,12 +37,39 @@
                 android:textSize="18sp"
                 android:fontFamily="@font/opensans_bold"/>
 
-            <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="wrap_content"
-                android:layout_height="150dp"
-                android:layout_margin="9dp"
-                android:src="@drawable/icon_add_photo" />
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="120dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_horizontal">
+
+                    <ImageButton
+                        android:id="@+id/ImageButton_add_photo"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:layout_margin="5dp"
+                        android:background="@drawable/background_edittext"
+                        android:src="@drawable/icon_add_photo"
+                        android:scaleType="centerInside"
+                        android:contentDescription="Додати фото" />
+
+
+                <LinearLayout
+                    android:id="@+id/imagesPreviewContainer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="120dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"/>
+
+                </LinearLayout>
+
+            </HorizontalScrollView>
 
             <TextView
                 android:layout_width="match_parent"

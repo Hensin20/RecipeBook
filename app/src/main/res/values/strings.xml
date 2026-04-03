@@ -15,14 +15,12 @@
     <string name="textPassword2"> Repeat password</string>
 
 
-
-
     <string name="textView_registration">Створіть свій акаунт</string>
     <string name="textView_login">Авторизація</string>
     <string name="button_register">Реєстрація</string>
 
 
- <!--Фрагмент створення рецепту-->
+    <!--Фрагмент створення рецепту-->
     <string name="texView_menu_create">Створіть свій рецепт</string>
     <string name="texView_menu_create_AddTitle">Назва блюда</string>
     <string name="texView_menu_create_AddPhoto">Додай фотографії</string>
@@ -32,7 +30,6 @@
     <string name="texView_menu_create_AddCategory">Вибери категорію</string>
     <string name="texView_menu_create_AddIngredients_quantity">Кількість</string>
     <string name="button_menu_create_post">Публікувати</string>
-
 
 
     <string name="action_sign_in">Sign in or register</string>

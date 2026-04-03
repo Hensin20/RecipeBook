@@ -2,12 +2,15 @@ package com.example.recipebookkotlin.network
 import com.example.recipebookkotlin.api.AuthApi
 import com.example.recipebookkotlin.api.CategoryApi
 import com.example.recipebookkotlin.api.IngredientApi
+import com.example.recipebookkotlin.api.RecipeApi
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 
 object ApiClient {
-    private const val BASE_USER = "http://192.168.0.101:8080"
+
+    public const val ipAdres = "http://192.168.31.252:8080"
+    private const val BASE_USER = ipAdres
 
     val retrofit: Retrofit by lazy{
         Retrofit.Builder()
@@ -25,5 +28,8 @@ object ApiClient {
 
     val categoryApi: CategoryApi by lazy {
         retrofit.create(CategoryApi::class.java)
+    }
+    val recipeApi: RecipeApi by lazy {
+        retrofit.create(RecipeApi::class.java)
     }
 }

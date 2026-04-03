@@ -17,4 +17,10 @@
         android:label="Create"
         tools:layout="@layout/fragment_create"/>
 
+    <fragment
+        android:id="@+id/fragmentViewRecipe"
+        android:name="com.example.recipebookkotlin.FragmentViewRecipe"
+        android:label="Перегляд рецепту"
+        tools:layout="@layout/fragment_view_recipe" />
+
 </navigation>

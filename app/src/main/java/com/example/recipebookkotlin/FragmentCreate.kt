@@ -1,5 +1,6 @@
 package com.example.recipebookkotlin
 
+import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -12,12 +13,25 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.util.Consumer
 import androidx.lifecycle.lifecycleScope
+import coil.load
+import com.example.recipebookkotlin.dto.IngredientDTO
+import com.example.recipebookkotlin.dto.RecipeCreateDTO
 import com.example.recipebookkotlin.network.ApiClient
+import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
+import java.io.FileOutputStream
 import kotlin.text.clear
 import kotlin.toString
 
@@ -25,8 +39,23 @@ class FragmentCreate : Fragment() {
     data class Ingredient(val name: String, val quantity: String)
     data class CookingStep(val text: String)
 
+
+    private var categoriesList = listOf<com.example.recipebookkotlin.dto.CategoryDTO>()
     private val ingredients = mutableListOf<Ingredient>()
     private val stepList = mutableListOf<CookingStep>()
+
+    private val selectedImageList = mutableListOf<Uri>()
+    private val pickMultipleImageLauncher = registerForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(5)
+    ) {uris ->
+        if(uris.isNotEmpty()){
+            selectedImageList.clear()
+            selectedImageList.addAll(uris)
+            updateImagePreview()
+        }
+
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,6 +68,18 @@ class FragmentCreate : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val addPhotoButton = view.findViewById<ImageView>(R.id.ImageButton_add_photo)
+        addPhotoButton.setOnClickListener {
+            pickMultipleImageLauncher.launch(
+                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+            )
+        }
+
+        val postButton = view.findViewById<android.widget.Button>(R.id.buttonLogin)
+        postButton.setOnClickListener {
+            saveRecipe(view)
+        }
+
         // Ingredient
         setupIngredientActions(view)
         loadIngredientData(view)
@@ -46,6 +87,93 @@ class FragmentCreate : Fragment() {
         //Category
         loadCategoryData(view)
 
+    }
+
+    private fun saveRecipe(view: View) {
+        android.util.Log.d("RECIPE_DEBUG", "1. Збираємо дані...")
+
+        val title = view.findViewById<EditText>(R.id.editTextText_title).text.toString().trim()
+        val description = view.findViewById<EditText>(R.id.editTextText_description).text.toString().trim()
+        val instruction = view.findViewById<EditText>(R.id.editTextText_instruction).text.toString().trim()
+        val categoryName = view.findViewById<AutoCompleteTextView>(R.id.autoCompleteCategory).text.toString()
+
+        if (title.isEmpty() || categoryName.isEmpty() || ingredients.isEmpty()) {
+            Toast.makeText(requireContext(), "Заповніть назву, категорію та додайте інгредієнти!", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // ТУТ БУЛА ПОМИЛКОВА ПЕРЕВІРКА - МИ ЇЇ ВИДАЛИЛИ! 🎉
+
+        val currentUser = "ChefIvan" // Тимчасовий автор
+
+        val recipeDTO = RecipeCreateDTO(
+            title = title,
+            description = description,
+            categoryName = categoryName, // Просто передаємо текст "Десерти"
+            authorName = currentUser,
+            instruction = instruction,
+            ingredients = ingredients.map { IngredientDTO(it.name, it.quantity) }
+        )
+
+        val jsonRecipe = Gson().toJson(recipeDTO)
+        val recipeRequestBody = jsonRecipe.toRequestBody("application/json".toMediaTypeOrNull())
+        val imagesParts = selectedImageList.mapNotNull { uri -> prepareFilePart(uri) }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                android.util.Log.d("RECIPE_DEBUG", "2. Відправляємо на сервер...")
+                ApiClient.recipeApi.createRecipe(recipeRequestBody, imagesParts)
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Рецепт успішно створено!", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    android.util.Log.e("RECIPE_DEBUG", "Помилка: ${e.message}", e)
+                    Toast.makeText(requireContext(), "Помилка при збереженні", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    private fun prepareFilePart(uri: Uri): MultipartBody.Part? {
+        val context = context ?: return null
+        return try {
+            val file = File(context.cacheDir, "recipe_image_${System.currentTimeMillis()}.jpg")
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val outputStream = FileOutputStream(file)
+            inputStream?.copyTo(outputStream)
+
+            val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+            MultipartBody.Part.createFormData("images", file.name, requestFile)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    private fun updateImagePreview(){
+        val container = view?.findViewById<LinearLayout>(R.id.imagesPreviewContainer) ?:return
+        container.removeAllViews()
+
+        selectedImageList.forEach { uri ->
+            val imageView = ImageView(requireContext()).apply {
+                layoutParams = LinearLayout.LayoutParams(250,250).apply {
+                    setMargins(10,0,10,0)
+                }
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                setBackgroundResource((R.drawable.background_edittext))
+
+                clipToOutline = true
+                load(uri){
+                    crossfade(true)
+                    size (300,300)
+                }
+                setOnClickListener {
+                    selectedImageList.remove(uri)
+                    updateImagePreview()
+                }
+            }
+            container.addView(imageView)
+        }
     }
 
     private fun loadIngredientData(view: View){
