@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
 
-    public const val ipAdres = "http://192.168.31.252:8080"
+    public const val ipAdres = "http://192.168.31.253:8081"
     private const val BASE_USER = ipAdres
 
     val retrofit: Retrofit by lazy{

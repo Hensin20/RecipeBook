@@ -239,7 +239,7 @@
                 android:layout_height="match_parent"
                 app:hintEnabled="false"
                 app:counterEnabled="true"
-                app:counterMaxLength="500">
+                app:counterMaxLength="1000">
 
                 <EditText
                     android:id="@+id/editTextText_instruction"
@@ -251,7 +251,7 @@
                     android:gravity="start"
                     android:layout_margin="10dp"
                     android:ems="20"
-                    android:maxLength="200"
+                    android:maxLength="1000"
                     android:inputType="textMultiLine"
                     android:textColor="@color/editeText"
                     android:background="@drawable/background_edittext"

@@ -37,6 +37,7 @@
     <EditText
         android:id="@+id/editEmail"
         android:layout_width="0dp"
+        android:textColorHint="@color/gray"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
@@ -51,6 +52,7 @@
 
     <EditText
         android:id="@+id/editUsername"
+        android:textColorHint="@color/gray"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -68,6 +70,7 @@
         android:id="@+id/editPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textColorHint="@color/gray"
         android:layout_marginStart="24dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="24dp"
@@ -85,6 +88,7 @@
         android:id="@+id/editPassword2"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:textColorHint="@color/gray"
         android:layout_marginStart="24dp"
         android:layout_marginEnd="24dp"
         android:hint="@string/textPassword2"

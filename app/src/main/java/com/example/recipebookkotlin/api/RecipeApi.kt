@@ -8,6 +8,7 @@ import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 interface RecipeApi {
 
@@ -26,4 +27,15 @@ interface RecipeApi {
     // 3. Отримання ОДНОГО рецепту для перегляду (GET)
     @GET("/api/recipes/{id}")
     suspend fun getRecipeById(@Path("id") id: Long): RecipeDTO
+
+    // 4. Відправка оцінки за рецепт
+    @POST("/api/recipes/{id}/rate")
+    suspend fun rateRecipe(
+        @Path("id") id: Long,
+        @Query("rating") rating: Int
+    ): Double // Сервер поверне нам нове середнє значення
+
+    @GET("/api/recipes/author/{username}")
+    suspend fun getRecipesByAuthor(@Path("username") username: String): List<RecipeDTO>
+
 }

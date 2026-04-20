@@ -141,6 +141,16 @@
                 android:textSize="16sp"
                 tools:text="1. Наріжте помідори...\n2. Додайте сіль..." />
 
+            <RatingBar
+                android:id="@+id/recipeRatingBar"
+                android:layout_width="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_height="wrap_content"
+                android:numStars="5"
+                android:stepSize="1.0"
+                android:progressTint="@color/textColor" />
+
         </LinearLayout>
+
     </ScrollView>
 </FrameLayout>

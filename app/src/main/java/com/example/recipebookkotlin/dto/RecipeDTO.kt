@@ -5,6 +5,7 @@ data class RecipeDTO(
     val title: String,
     val description: String?,       // Може бути null, якщо опис порожній
     val averageRating: Double,
+    val votesCount: Int,
     val categoryName: String,
     val authorName: String,
     val instruction: String?,       // Кроки приготування

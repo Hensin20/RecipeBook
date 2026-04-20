@@ -23,4 +23,10 @@
         android:label="Перегляд рецепту"
         tools:layout="@layout/fragment_view_recipe" />
 
+    <fragment
+        android:id="@+id/fragment_profile"
+        android:name="com.example.recipebookkotlin.FragmentProfile"
+        android:label="Profile"
+        tools:layout="@layout/fragment_profile" />
+
 </navigation>

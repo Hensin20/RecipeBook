@@ -81,6 +81,31 @@ class FragmentViewRecipe : Fragment() {
         view.findViewById<TextView>(R.id.textView_recipeAuthor).text = "Шеф: ${recipe.authorName}"
         view.findViewById<TextView>(R.id.textView_recipeDescription).text = recipe.description
         view.findViewById<TextView>(R.id.textView_recipeInstruction).text = recipe.instruction ?: "Інструкція відсутня"
+        val ratingBar = view.findViewById<android.widget.RatingBar>(R.id.recipeRatingBar)
+
+        ratingBar.rating = recipe.averageRating.toFloat()
+
+        ratingBar.setOnRatingBarChangeListener { _, rating, fromUser ->
+            // fromUser = true означає, що це натиснула людина, а не код вище поставив значення
+            if (fromUser) {
+                lifecycleScope.launch(Dispatchers.IO) {
+                    try {
+                        // Відправляємо оцінку на сервер
+                        val newAverage = ApiClient.recipeApi.rateRecipe(recipe.id, rating.toInt())
+
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(requireContext(), "Дякуємо за оцінку!", Toast.LENGTH_SHORT).show()
+                            // Оновлюємо зірочки на нове середнє значення
+                            ratingBar.rating = newAverage.toFloat()
+                        }
+                    } catch (e: Exception) {
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(requireContext(), "Помилка відправки оцінки", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                }
+            }
+        }
 
         // Інгредієнти (динамічно додаємо у список)
         val ingredientsContainer = view.findViewById<LinearLayout>(R.id.ingredientsContainer)

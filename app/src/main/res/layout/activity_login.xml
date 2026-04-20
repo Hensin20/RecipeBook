@@ -24,7 +24,7 @@
         app:layout_constraintVertical_bias="0.133" />
 
     <EditText
-        android:id="@+id/username"
+        android:id="@+id/editEmail"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -32,6 +32,7 @@
         android:layout_marginEnd="24dp"
         android:hint="@string/textEmail"
         android:inputType="textEmailAddress"
+        android:textColorHint="@color/gray"
         android:selectAllOnFocus="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
@@ -39,7 +40,7 @@
         app:layout_constraintTop_toBottomOf="@+id/textView_register" />
 
     <EditText
-        android:id="@+id/password"
+        android:id="@+id/editPassword"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="24dp"
@@ -48,11 +49,12 @@
         android:hint="@string/textPassword"
         android:imeActionLabel="@string/action_sign_in_short"
         android:imeOptions="actionDone"
+        android:textColorHint="@color/gray"
         android:inputType="textPassword"
         android:selectAllOnFocus="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/username" />
+        app:layout_constraintTop_toBottomOf="@+id/editEmail" />
 
     <Button
         android:id="@+id/buttonLogin"
@@ -66,7 +68,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/password" />
+        app:layout_constraintTop_toBottomOf="@+id/editPassword" />
 
     <ProgressBar
         android:id="@+id/loading"
@@ -79,8 +81,8 @@
         android:layout_marginBottom="64dp"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="@+id/password"
-        app:layout_constraintStart_toStartOf="@+id/password"
+        app:layout_constraintEnd_toEndOf="@+id/editPassword"
+        app:layout_constraintStart_toStartOf="@+id/editPassword"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.3" />
 

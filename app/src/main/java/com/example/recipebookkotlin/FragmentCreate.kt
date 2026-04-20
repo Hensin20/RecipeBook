@@ -1,5 +1,6 @@
 package com.example.recipebookkotlin
 
+import android.content.Context
 import android.net.Uri
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -102,15 +103,14 @@ class FragmentCreate : Fragment() {
             return
         }
 
-        // ТУТ БУЛА ПОМИЛКОВА ПЕРЕВІРКА - МИ ЇЇ ВИДАЛИЛИ! 🎉
-
-        val currentUser = "ChefIvan" // Тимчасовий автор
+        val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
+        val currentUsername = sharedPrefs.getString("USER_USERNAME", "Анонім") ?: "Анонім"
 
         val recipeDTO = RecipeCreateDTO(
             title = title,
             description = description,
             categoryName = categoryName, // Просто передаємо текст "Десерти"
-            authorName = currentUser,
+            authorName = currentUsername,
             instruction = instruction,
             ingredients = ingredients.map { IngredientDTO(it.name, it.quantity) }
         )

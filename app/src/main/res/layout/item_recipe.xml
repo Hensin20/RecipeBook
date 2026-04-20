@@ -26,6 +26,14 @@
         android:textColor="@color/textColor"
         android:textSize="20sp"
         android:text="Назва рецепту" />
+    <TextView
+        android:id="@+id/textView_recipeRating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="⭐ 0.0 (0)"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="#FFB300" />
 
     <LinearLayout
         android:layout_width="match_parent"

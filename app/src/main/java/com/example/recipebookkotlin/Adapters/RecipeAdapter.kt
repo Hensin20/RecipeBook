@@ -21,6 +21,7 @@ class RecipeAdapter(
         val category: TextView = view.findViewById(R.id.textView_recipeCategory)
         val author: TextView = view.findViewById(R.id.textView_recipeAuthor)
         val image: ImageView = view.findViewById(R.id.imageView_recipeThumb)
+        val rating: TextView = view.findViewById(R.id.textView_recipeRating)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecipeViewHolder {
@@ -36,19 +37,20 @@ class RecipeAdapter(
         holder.category.text = recipe.categoryName
         holder.author.text = recipe.authorName
 
-        // Завантажуємо першу картинку, якщо вона є
+        val formattedRating = String.format("%.1f", recipe.averageRating)
+        // Виводимо текст у форматі: ⭐ 4.5 (12)
+        holder.rating.text = "⭐ $formattedRating (${recipe.votesCount})"
         val firstImage = recipe.imageUrls?.firstOrNull()
+
         if (firstImage != null) {
             val fullUrl = "$ipAdres/uploads/$firstImage"
             holder.image.load(fullUrl) {
                 crossfade(true)
             }
         } else {
-            // Якщо фото немає, ставимо заглушку
             holder.image.setImageResource(R.drawable.icon_add_photo)
         }
 
-        // Обробка кліку на картку
         holder.itemView.setOnClickListener {
             onRecipeClick(recipe.id)
         }
