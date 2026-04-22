@@ -1,9 +1,11 @@
 package com.example.recipebookkotlin
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -21,13 +23,13 @@ import kotlinx.coroutines.withContext
 class FragmentViewRecipe : Fragment() {
 
     private var currentRecipeId: Long = -1L
+    private var isFavorite: Boolean = false // ДОДАНО: Стан для сердечка
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         currentRecipeId = arguments?.getLong("RECIPE_ID") ?: -1L
     }
 
-    // ДОДАЙ ЦЕЙ БЛОК: Він "надуває" (inflate) твій XML-дизайн
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,16 +40,12 @@ class FragmentViewRecipe : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // ... твій існуючий код ...
-
         // Знаходимо кнопку і ставимо клік
-        val backButton = view.findViewById<ImageView>(R.id.imageView_back)
-        backButton.setOnClickListener {
-            // Ця команда робить ТОЧНО ТЕ САМЕ, що й кнопка "Назад" на телефоні
-            findNavController().popBackStack()
-        }
+        // val backButton = view.findViewById<ImageView>(R.id.imageView_back)
+        // backButton.setOnClickListener {
+        //     findNavController().popBackStack()
+        // }
 
-        // Твій існуючий код завантаження...
         if (currentRecipeId != -1L) {
             loadRecipeData(view)
         } else {
@@ -58,15 +56,31 @@ class FragmentViewRecipe : Fragment() {
     private fun loadRecipeData(view: View) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                // 1. Завантажуємо сам рецепт
                 val recipe = ApiClient.recipeApi.getRecipeById(currentRecipeId)
+
+                // 2. ДОДАНО: Отримуємо username користувача
+                val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
+                val username = sharedPrefs.getString("USER_USERNAME", "") ?: ""
+
+                // 3. ДОДАНО: Перевіряємо, чи є цей рецепт у закладках цього користувача
+                if (username.isNotEmpty()) {
+                    try {
+                        val favorites = ApiClient.recipeApi.getFavorites(username)
+                        // Перевіряємо, чи збігається ID рецепта з ID в закладках
+                        isFavorite = favorites.any { it.recipe.id == currentRecipeId }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                    }
+                }
 
                 withContext(Dispatchers.Main) {
                     populateUI(view, recipe)
+                    // ДОДАНО: Налаштовуємо кнопку вподобань після завантаження даних
+                    setupFavoriteButton(view, username, recipe.id)
                 }
             } catch (e: Exception) {
-                // ДОДАЙ ЦЕЙ РЯДОК:
                 android.util.Log.e("RECIPE_DEBUG", "Причина помилки: ", e)
-
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Помилка: ${e.message}", Toast.LENGTH_LONG).show()
                 }
@@ -86,16 +100,12 @@ class FragmentViewRecipe : Fragment() {
         ratingBar.rating = recipe.averageRating.toFloat()
 
         ratingBar.setOnRatingBarChangeListener { _, rating, fromUser ->
-            // fromUser = true означає, що це натиснула людина, а не код вище поставив значення
             if (fromUser) {
                 lifecycleScope.launch(Dispatchers.IO) {
                     try {
-                        // Відправляємо оцінку на сервер
                         val newAverage = ApiClient.recipeApi.rateRecipe(recipe.id, rating.toInt())
-
                         withContext(Dispatchers.Main) {
                             Toast.makeText(requireContext(), "Дякуємо за оцінку!", Toast.LENGTH_SHORT).show()
-                            // Оновлюємо зірочки на нове середнє значення
                             ratingBar.rating = newAverage.toFloat()
                         }
                     } catch (e: Exception) {
@@ -107,7 +117,7 @@ class FragmentViewRecipe : Fragment() {
             }
         }
 
-        // Інгредієнти (динамічно додаємо у список)
+        // Інгредієнти
         val ingredientsContainer = view.findViewById<LinearLayout>(R.id.ingredientsContainer)
         ingredientsContainer.removeAllViews()
 
@@ -127,10 +137,7 @@ class FragmentViewRecipe : Fragment() {
 
         recipe.imageUrls?.forEach { imageUrl ->
             val imageView = ImageView(requireContext()).apply {
-                // Переводимо 300dp у пікселі для поточного екрана
                 val widthPx = (300 * resources.displayMetrics.density).toInt()
-
-                // Змінюємо MATCH_PARENT на widthPx
                 layoutParams = LinearLayout.LayoutParams(
                     widthPx,
                     LinearLayout.LayoutParams.MATCH_PARENT
@@ -146,6 +153,43 @@ class FragmentViewRecipe : Fragment() {
                 }
             }
             imagesContainer.addView(imageView)
+        }
+    }
+
+    // ДОДАНО: Метод для роботи з кнопкою "Вподобати"
+    private fun setupFavoriteButton(view: View, username: String, recipeId: Long) {
+        val heartBtn = view.findViewById<ImageView>(R.id.buttonFavorite)
+
+        // Встановлюємо правильну іконку при відкритті екрана
+        heartBtn.setImageResource(if (isFavorite) R.drawable.icon_save_active else R.drawable.icon_save)
+
+        heartBtn.setOnClickListener {
+            if (username.isEmpty()) {
+                Toast.makeText(context, "Будь ласка, увійдіть в акаунт", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    if (!isFavorite) {
+                        ApiClient.recipeApi.addToFavorites(username, recipeId)
+                        isFavorite = true
+                    } else {
+                        ApiClient.recipeApi.removeFromFavorites(username, recipeId)
+                        isFavorite = false
+                    }
+
+                    withContext(Dispatchers.Main) {
+                        // Оновлюємо іконку після успішного запиту
+                        heartBtn.setImageResource(if (isFavorite) R.drawable.icon_save_active else R.drawable.icon_save)
+                        Toast.makeText(context, if (isFavorite) "Додано до закладок!" else "Видалено з закладок", Toast.LENGTH_SHORT).show()
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(context, "Помилка синхронізації", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
         }
     }
 }

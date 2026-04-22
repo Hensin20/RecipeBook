@@ -29,4 +29,16 @@
         android:label="Profile"
         tools:layout="@layout/fragment_profile" />
 
+    <fragment
+        android:id="@+id/fragment_favorites"
+        android:name="com.example.recipebookkotlin.FragmentFavorites"
+        android:label="Favoritrs"
+        tools:layout="@layout/fragment_favorites" />
+
+    <fragment
+        android:id="@+id/fragment_catalog"
+        android:name="com.example.recipebookkotlin.FragmentCatalog"
+        android:label="Search"
+        tools:layout="@layout/fragment_catalog" />
+
 </navigation>
