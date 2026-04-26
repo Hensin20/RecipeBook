@@ -31,22 +31,21 @@ class FragmentHome : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Налаштовуємо список
         recyclerView = view.findViewById(R.id.recyclerView_recipes)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Ініціалізуємо порожній адаптер
-        adapter = RecipeAdapter(emptyList()) { recipeId ->
-            val bundle = Bundle().apply {
-                putLong("RECIPE_ID", recipeId)
+        // ВИПРАВЛЕНО: Використовуємо іменований аргумент onRecipeClick
+        adapter = RecipeAdapter(
+            recipes = emptyList(),
+            onRecipeClick = { recipeId ->
+                val bundle = Bundle().apply {
+                    putLong("RECIPE_ID", recipeId)
+                }
+                findNavController().navigate(R.id.fragmentViewRecipe, bundle)
             }
-
-            // Звичайний перехід. Тепер системна кнопка "Назад" буде працювати автоматично!
-            findNavController().navigate(R.id.fragmentViewRecipe, bundle)
-        }
+        )
         recyclerView.adapter = adapter
 
-        // Завантажуємо дані
         loadRecipes()
     }
 
@@ -54,7 +53,6 @@ class FragmentHome : Fragment() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val recipes = ApiClient.recipeApi.getAllRecipes()
-
                 withContext(Dispatchers.Main) {
                     adapter.updateData(recipes)
                 }

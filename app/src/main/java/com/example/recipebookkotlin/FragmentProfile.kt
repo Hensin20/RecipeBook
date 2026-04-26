@@ -9,8 +9,10 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.recipebookkotlin.Adapters.RecipeAdapter
@@ -41,11 +43,29 @@ class FragmentProfile : Fragment() {
         // Налаштування списку
         val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerViewMyRecipes)
         recyclerView.layoutManager = LinearLayoutManager(context)
-        adapter = RecipeAdapter(emptyList()) { recipeId ->
-            // Перехід до перегляду рецепту
-            val bundle = Bundle().apply { putLong("RECIPE_ID", recipeId) }
-            // Тут додай навігацію (наприклад, через NavController)
-        }
+
+        // ВИПРАВЛЕНО: Додано всі 3 дії (Перегляд, Редагування, Видалення)
+        adapter = RecipeAdapter(
+            recipes = emptyList(),
+            onRecipeClick = { recipeId ->
+                // Перехід до перегляду рецепту
+                val bundle = Bundle().apply { putLong("RECIPE_ID", recipeId) }
+                findNavController().navigate(R.id.fragmentViewRecipe, bundle)
+            },
+            // У FragmentProfile:
+            onEditClick = { recipeId ->
+                val bundle = Bundle().apply { putLong("RECIPE_ID", recipeId) }
+                findNavController().navigate(R.id.fragment_edit_recipe, bundle)
+                // РОЗКОМЕНТУЙ РЯДОК НИЖЧЕ, коли створиш екран для створення/редагування:
+                // findNavController().navigate(R.id.fragmentCreateRecipe, bundle)
+                Toast.makeText(requireContext(), "Відкриваємо редагування: $recipeId", Toast.LENGTH_SHORT).show()
+            },
+            onDeleteClick = { recipeId ->
+                // Виклик діалогового вікна для підтвердження видалення
+                showDeleteConfirmationDialog(recipeId, username)
+            }
+        )
+
         recyclerView.adapter = adapter
 
         // Кнопка виходу
@@ -71,11 +91,55 @@ class FragmentProfile : Fragment() {
         }
     }
 
+    // ЛОГІКА ВИДАЛЕННЯ: Діалогове вікно
+    private fun showDeleteConfirmationDialog(recipeId: Long, username: String) {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Видалення рецепту")
+            .setMessage("Ви дійсно хочете назавжди видалити цей рецепт?")
+            .setPositiveButton("Видалити") { _, _ ->
+                deleteRecipe(recipeId, username)
+            }
+            .setNegativeButton("Скасувати", null)
+            .show()
+    }
+
+    // ЛОГІКА ВИДАЛЕННЯ: Запит на сервер
+    private fun deleteRecipe(recipeId: Long, username: String) {
+        val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
+
+        // Дістаємо ID поточного користувача.
+        // ЗВЕРНИ УВАГУ: Переконайся, що при авторизації ти зберігаєш "USER_ID" як Long або Int
+        val userId = sharedPrefs.getLong("USER_ID", -1L)
+
+        if (userId == -1L) {
+            Toast.makeText(requireContext(), "Помилка авторизації (немає ID)", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            try {
+                val response = ApiClient.recipeApi.deleteRecipe(recipeId, userId)
+                withContext(Dispatchers.Main) {
+                    if (response.isSuccessful) {
+                        Toast.makeText(requireContext(), "Рецепт видалено", Toast.LENGTH_SHORT).show()
+                        // Оновлюємо список після успішного видалення
+                        loadMyRecipes(username)
+                    } else {
+                        Toast.makeText(requireContext(), "Помилка видалення на сервері", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Помилка мережі", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
     private fun logoutUser() {
         val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
-        sharedPrefs.edit().clear().apply() // ПОВНЕ ОЧИЩЕННЯ ДАНИХ
+        sharedPrefs.edit().clear().apply()
 
-        // Перехід на початковий екран (MainActivity)
         val intent = Intent(requireContext(), MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)

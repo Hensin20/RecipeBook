@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -9,13 +10,41 @@
     android:padding="10dp"
     android:elevation="4dp">
 
-    <ImageView
-        android:id="@+id/imageView_recipeThumb"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="180dp"
-        android:scaleType="centerCrop"
-        android:background="#E0E0E0"
-        android:clipToOutline="true" />
+        android:layout_height="180dp">
+
+        <ImageView
+            android:id="@+id/imageView_recipeThumb"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:background="#E0E0E0"
+            android:clipToOutline="true" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|end"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageButton
+                android:id="@+id/btnEdit"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/icon_edit"
+                app:tint="#FFFFFF" />
+
+            <ImageButton
+                android:id="@+id/btnDelete"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:background="@drawable/icon_delete"
+                app:tint="#FF3B30" />
+        </LinearLayout>
+    </FrameLayout>
 
     <TextView
         android:id="@+id/textView_recipeTitle"
@@ -26,6 +55,7 @@
         android:textColor="@color/textColor"
         android:textSize="20sp"
         android:text="Назва рецепту" />
+
     <TextView
         android:id="@+id/textView_recipeRating"
         android:layout_width="wrap_content"

@@ -235,7 +235,7 @@ class FragmentCreate : Fragment() {
                 withContext(Dispatchers.Main) {
                     val context = context ?: return@withContext
                     // Використовуємо правильну розмітку для випадаючого списку
-                    val adapter = ArrayAdapter(context, android.R.layout.simple_list_item_1, names)
+                    val adapter = ArrayAdapter(context, R.layout.item_dropdown_category, names)
                     categoryInput.setAdapter(adapter)
 
                     // Для Exposed Dropdown Menu важливо вимкнути введення тексту,

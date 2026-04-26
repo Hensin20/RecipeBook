@@ -34,14 +34,18 @@ class FragmentFavorites : Fragment() {
         // 2. Тільки після того, як ми його знайшли, можемо налаштовувати:
         recyclerView.layoutManager = LinearLayoutManager(context)
 
-        adapter = RecipeAdapter(emptyList()) { id ->
-            val bundle = Bundle().apply { putLong("RECIPE_ID", id) }
-            try {
-                findNavController().navigate(R.id.fragmentViewRecipe, bundle)
-            } catch (e: Exception) {
-                Toast.makeText(context, "Перевір ID фрагмента у nav_graph!", Toast.LENGTH_LONG).show()
+        // ВИПРАВЛЕНО: Використовуємо іменований параметр onRecipeClick
+        adapter = RecipeAdapter(
+            recipes = emptyList(),
+            onRecipeClick = { id ->
+                val bundle = Bundle().apply { putLong("RECIPE_ID", id) }
+                try {
+                    findNavController().navigate(R.id.fragmentViewRecipe, bundle)
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Перевір ID фрагмента у nav_graph!", Toast.LENGTH_LONG).show()
+                }
             }
-        }
+        )
 
         // 3. І тільки тепер ми можемо прикріпити адаптер
         recyclerView.adapter = adapter

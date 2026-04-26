@@ -6,10 +6,12 @@ import com.example.recipebookkotlin.dto.RecipeDTO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -74,5 +76,20 @@ interface RecipeApi {
     suspend fun searchByCategory(
         @Query("category") category: String
     ): List<RecipeDTO>
+
+    // Видалити рецепт
+    @DELETE("/api/recipes/{id}")
+    suspend fun deleteRecipe(
+        @Path("id") recipeId: Long,
+        @Query("userId") userId: Long
+    ): Response<Void>
+
+    // Оновити рецепт
+    @PUT("/api/recipes/{id}")
+    suspend fun updateRecipe(
+        @Path("id") recipeId: Long,
+        @Query("userId") userId: Long,
+        @Body recipe: RecipeDTO
+    ): Response<RecipeDTO>
 
 }

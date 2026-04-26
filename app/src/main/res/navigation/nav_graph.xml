@@ -41,4 +41,10 @@
         android:label="Search"
         tools:layout="@layout/fragment_catalog" />
 
+    <fragment
+        android:id="@+id/fragment_edit_recipe"
+        android:name="com.example.recipebookkotlin.FragmentEditRecipe"
+        android:label="Edit"
+        tools:layout="@layout/fragment_edit_recipe" />
+
 </navigation>

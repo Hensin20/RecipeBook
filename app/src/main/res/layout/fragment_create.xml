@@ -145,22 +145,24 @@
                 android:fontFamily="@font/opensans_bold"/>
 
             <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/menu_categoty"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
-                app:boxStrokeColor="@color/orange"
-                app:boxStrokeWidth="2dp"
-
                 android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp">
+                android:layout_margin="10dp"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                app:hintEnabled="false">
 
                 <AutoCompleteTextView
                     android:id="@+id/autoCompleteCategory"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:padding="12dp"
                     android:textColor="@color/editeText"
-                    android:inputType="text" />
+                    android:background="@drawable/background_edittext"
+                    android:popupBackground="@drawable/background_edittext"
+                    android:inputType="none"
+                    android:backgroundTint="@null" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <TextView
@@ -181,7 +183,7 @@
                 <AutoCompleteTextView
                     android:id="@+id/ingredient_input"
                     android:layout_width="198dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="45dp"
                     android:layout_marginStart="10dp"
                     android:background="@drawable/background_edittext"
                     android:hint="@string/texView_menu_create_AddIngredients"
@@ -192,7 +194,7 @@
                 <EditText
                     android:id="@+id/ingredient_quantity_input"
                     android:layout_width="113dp"
-                    android:layout_height="wrap_content"
+                    android:layout_height="45dp"
                     android:layout_marginStart="3dp"
                     android:background="@drawable/background_edittext"
                     android:hint="@string/texView_menu_create_AddIngredients_quantity"

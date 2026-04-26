@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:background="@drawable/gradient_background"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".FragmentEditRecipe">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:text="Редагування рецепту"
+                android:textSize="24sp"
+                android:textColor="@color/red"
+                android:gravity="center"
+                android:fontFamily="@font/opensans_bold"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:text="Оновити фото (необов'язково)"
+                android:textColor="@color/textColor"
+                android:textSize="18sp"
+                android:fontFamily="@font/opensans_bold"/>
+
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="120dp"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <ImageButton
+                        android:id="@+id/ImageButton_edit_photo"
+                        android:layout_width="100dp"
+                        android:layout_height="100dp"
+                        android:layout_margin="5dp"
+                        android:background="@drawable/background_edittext"
+                        android:src="@drawable/icon_add_photo"
+                        android:scaleType="centerInside" />
+
+                    <LinearLayout
+                        android:id="@+id/imagesEditPreviewContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="120dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"/>
+                </LinearLayout>
+            </HorizontalScrollView>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:textColor="@color/textColor"
+                android:text="Назва"
+                android:textSize="18sp"/>
+
+            <EditText
+                android:id="@+id/editTextTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:background="@drawable/background_edittext"
+                android:padding="12dp"
+                android:textColor="@color/editeText"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:textColor="@color/textColor"
+                android:text="Опис"
+                android:textSize="18sp"/>
+
+            <EditText
+                android:id="@+id/editTextDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                android:background="@drawable/background_edittext"
+                android:padding="12dp"
+                android:minLines="3"
+                android:textColor="@color/editeText"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textColor="@color/textColor"
+                android:layout_marginStart="15dp"
+                android:text="Категорія"
+                android:textSize="18sp"/>
+
+            <com.google.android.material.textfield.TextInputLayout
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="10dp"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                app:hintEnabled="false">
+
+                <AutoCompleteTextView
+                    android:id="@+id/editTextCategory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:textColor="@color/editeText"
+                    android:background="@drawable/background_edittext"
+                    android:popupBackground="@drawable/background_edittext"
+                    android:inputType="none"
+                    android:backgroundTint="@null" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:textColor="@color/textColor"
+                android:text="Інгредієнти"
+                android:textSize="18sp"
+                android:layout_marginTop="10dp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="10dp">
+
+                <EditText
+                    android:id="@+id/ingredient_input"
+                    android:layout_width="113dp"
+                    android:layout_weight="2"
+                    android:layout_height="45dp"
+                    android:background="@drawable/background_edittext"
+                    android:padding="12dp"
+                    android:hint="Назва"
+                    android:textColorHint="@color/gray"
+                    android:textColor="@color/editeText" />
+
+                <EditText
+                    android:id="@+id/ingredient_quantity_input"
+                    android:layout_width="113dp"
+                    android:layout_weight="1"
+                    android:layout_height="45dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/background_edittext"
+                    android:padding="12dp"
+                    android:hint="К-сть (200г)"
+                    android:textColorHint="@color/gray"
+                    android:textColor="@color/editeText" />
+
+                <ImageButton
+                    android:id="@+id/imageView_addIngredient"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/icon_plus" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ingredientListContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="10dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15dp"
+                android:textColor="@color/editeText"
+                android:text="Інструкція"
+                android:textSize="18sp"
+                android:layout_marginTop="15dp"/>
+
+            <EditText
+                android:id="@+id/editTextInstructions"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minLines="5"
+                android:padding="12dp"
+                android:layout_margin="10dp"
+                android:gravity="top|start"
+                android:inputType="textMultiLine"
+                android:textColor="@color/editeText"
+                android:background="@drawable/background_edittext"/>
+
+            <Button
+                android:id="@+id/buttonSaveRecipe"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginBottom="30dp"
+                android:backgroundTint="@color/orange"
+                android:textColor="@color/buttonTextColor"
+                android:text="Зберегти зміни" />
+
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>
