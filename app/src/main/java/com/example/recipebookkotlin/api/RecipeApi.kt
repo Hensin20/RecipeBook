@@ -92,4 +92,9 @@ interface RecipeApi {
         @Body recipe: RecipeDTO
     ): Response<RecipeDTO>
 
+    @GET("/api/recipes/search-by-ingredients")
+    suspend fun searchByIngredients(
+        @Query("ingredients") ingredients: String
+    ): List<RecipeDTO> // або Response<List<RecipeDTO>>, залежно від того, як у тебе налаштовано
+
 }

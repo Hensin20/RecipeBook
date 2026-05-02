@@ -28,7 +28,6 @@ class ActivityLogin : AppCompatActivity() {
             insets
         }
 
-        // Знаходимо елементи дизайну (перевір свої ID в XML!)
         val editEmail = findViewById<EditText>(R.id.editEmail)
         val editPassword = findViewById<EditText>(R.id.editPassword)
         val btnLogin = findViewById<Button>(R.id.buttonLogin)
@@ -37,38 +36,36 @@ class ActivityLogin : AppCompatActivity() {
             val email = editEmail.text.toString().trim()
             val password = editPassword.text.toString().trim()
 
-            // Перевірка на порожні поля
             if (email.isEmpty() || password.isEmpty()) {
                 Toast.makeText(this, "Будь ласка, введіть Email та Пароль", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Створюємо об'єкт для відправки
             val loginRequest = UserLoginDTO(email, password)
 
-            // Відправляємо запит на сервер
             ApiClient.authApi.login(loginRequest).enqueue(object : Callback<User> {
                 override fun onResponse(call: Call<User>, response: Response<User>) {
                     if (response.isSuccessful) {
                         val user = response.body()
 
-                        // 1. Відкриваємо "сховище" SharedPreferences телефону
                         val sharedPreferences = getSharedPreferences("RecipeBookPrefs", MODE_PRIVATE)
                         val editor = sharedPreferences.edit()
 
-                        // 2. Записуємо туди дані користувача
                         editor.putLong("USER_ID", user?.id ?: -1L)
                         editor.putString("USER_USERNAME", user?.username)
                         editor.putString("USER_EMAIL", user?.email)
-                        editor.apply() // apply() зберігає це у фоновому режимі (швидко і безпечно)
+
+                        val isUserAdmin = (user?.role?.lowercase() == "admin") || (user?.isAdmin == true)
+                        editor.putBoolean("IS_ADMIN", isUserAdmin)
+
+                        editor.apply()
 
                         Toast.makeText(this@ActivityLogin, "Вітаємо, ${user?.username}!", Toast.LENGTH_SHORT).show()
 
-                        // 3. Перехід в Головне Меню (яке автоматично відкриє FragmentHome)
                         val intent = Intent(this@ActivityLogin, ActivityMenu::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                         startActivity(intent)
-                        finish() // Закриваємо екран логіну
+                        finish()
 
                     } else {
                         Toast.makeText(this@ActivityLogin, "Невірний email або пароль!", Toast.LENGTH_LONG).show()

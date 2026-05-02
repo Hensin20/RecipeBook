@@ -17,21 +17,52 @@
             android:orientation="vertical"
             android:paddingBottom="30dp">
 
-            <ImageView
-                android:id="@+id/buttonFavorite"
-                android:layout_width="46dp"
-                android:layout_height="46dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginEnd="16dp"
-                android:padding="8dp"
-                android:layout_gravity="right"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:focusable="true"
-                android:contentDescription="Додати в обране"
-                android:src="@drawable/icon_save"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_gravity="right">
+
+                <Button
+                    android:id="@+id/btnEdit"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Редагувати"
+                    android:visibility="invisible"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="10dp"
+                    android:backgroundTint="@color/orange"
+                    android:textColor="@color/white" />
+
+                <Button
+                    android:id="@+id/btnDelete"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Видалити"
+                    android:visibility="invisible"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginEnd="20dp"
+                    android:backgroundTint="#FF3B30"
+                    android:textColor="@color/white" />
+
+                <ImageView
+                    android:id="@+id/buttonFavorite"
+                    android:layout_width="46dp"
+                    android:layout_height="46dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="16dp"
+                    android:padding="8dp"
+                    android:layout_gravity="right"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:contentDescription="Додати в обране"
+                    android:src="@drawable/icon_save"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent" />
+
+            </LinearLayout>
+
+
 
             <TextView
                 android:id="@+id/textView_recipeTitle"

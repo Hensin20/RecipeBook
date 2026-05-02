@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -23,7 +24,8 @@ import kotlinx.coroutines.withContext
 class FragmentViewRecipe : Fragment() {
 
     private var currentRecipeId: Long = -1L
-    private var isFavorite: Boolean = false // ДОДАНО: Стан для сердечка
+    private var isFavorite: Boolean = false
+    private var isAuthorOrAdmin: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +42,6 @@ class FragmentViewRecipe : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Знаходимо кнопку і ставимо клік
-        // val backButton = view.findViewById<ImageView>(R.id.imageView_back)
-        // backButton.setOnClickListener {
-        //     findNavController().popBackStack()
-        // }
-
         if (currentRecipeId != -1L) {
             loadRecipeData(view)
         } else {
@@ -56,18 +52,16 @@ class FragmentViewRecipe : Fragment() {
     private fun loadRecipeData(view: View) {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                // 1. Завантажуємо сам рецепт
                 val recipe = ApiClient.recipeApi.getRecipeById(currentRecipeId)
 
-                // 2. ДОДАНО: Отримуємо username користувача
                 val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
                 val username = sharedPrefs.getString("USER_USERNAME", "") ?: ""
+                val currentUserId = sharedPrefs.getLong("USER_ID", -1L)
+                val isAdmin = sharedPrefs.getBoolean("IS_ADMIN", false)
 
-                // 3. ДОДАНО: Перевіряємо, чи є цей рецепт у закладках цього користувача
                 if (username.isNotEmpty()) {
                     try {
                         val favorites = ApiClient.recipeApi.getFavorites(username)
-                        // Перевіряємо, чи збігається ID рецепта з ID в закладках
                         isFavorite = favorites.any { it.recipe.id == currentRecipeId }
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -75,8 +69,10 @@ class FragmentViewRecipe : Fragment() {
                 }
 
                 withContext(Dispatchers.Main) {
+                    // Перевіряємо, чи поточний користувач є автором або адміністратором
+                    // Припустимо, що у RecipeDTO є поле authorName
+                    isAuthorOrAdmin = (username == recipe.authorName) || isAdmin
                     populateUI(view, recipe)
-                    // ДОДАНО: Налаштовуємо кнопку вподобань після завантаження даних
                     setupFavoriteButton(view, username, recipe.id)
                 }
             } catch (e: Exception) {
@@ -89,7 +85,6 @@ class FragmentViewRecipe : Fragment() {
     }
 
     private fun populateUI(view: View, recipe: com.example.recipebookkotlin.dto.RecipeDTO){
-        // Текстові поля
         view.findViewById<TextView>(R.id.textView_recipeTitle).text = recipe.title
         view.findViewById<TextView>(R.id.textView_recipeCategory).text = recipe.categoryName
         view.findViewById<TextView>(R.id.textView_recipeAuthor).text = "Шеф: ${recipe.authorName}"
@@ -117,7 +112,6 @@ class FragmentViewRecipe : Fragment() {
             }
         }
 
-        // Інгредієнти
         val ingredientsContainer = view.findViewById<LinearLayout>(R.id.ingredientsContainer)
         ingredientsContainer.removeAllViews()
 
@@ -131,7 +125,6 @@ class FragmentViewRecipe : Fragment() {
             ingredientsContainer.addView(textView)
         }
 
-        // Фотографії
         val imagesContainer = view.findViewById<LinearLayout>(R.id.imagesContainer)
         imagesContainer.removeAllViews()
 
@@ -154,13 +147,67 @@ class FragmentViewRecipe : Fragment() {
             }
             imagesContainer.addView(imageView)
         }
+
+        // Відображення кнопок "Редагувати" та "Видалити", якщо є права
+        val buttonEdit = view.findViewById<Button>(R.id.btnEdit)
+        val buttonDelete = view.findViewById<Button>(R.id.btnDelete)
+
+        if (isAuthorOrAdmin) {
+            buttonEdit.visibility = View.VISIBLE
+            buttonDelete.visibility = View.VISIBLE
+
+            buttonEdit.setOnClickListener {
+                val bundle = Bundle().apply {
+                    putLong("RECIPE_ID", recipe.id)
+                }
+                findNavController().navigate(R.id.fragment_edit_recipe, bundle)
+            }
+
+            buttonDelete.setOnClickListener {
+                // Створюємо діалогове вікно (вікно підтвердження)
+                android.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Видалення рецепту")
+                    .setMessage("Ви дійсно хочете видалити цей рецепт? Цю дію неможливо скасувати.")
+                    // Кнопка "Видалити" (червона зона)
+                    .setPositiveButton("Видалити") { dialog, _ ->
+
+                        // Ось тут починається сам запит на сервер, якщо натиснули "Видалити"
+                        lifecycleScope.launch(Dispatchers.IO) {
+                            val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
+                            val userId = sharedPrefs.getLong("USER_ID", -1L)
+                            try {
+                                val response = ApiClient.recipeApi.deleteRecipe(recipe.id, userId)
+                                withContext(Dispatchers.Main) {
+                                    if (response.isSuccessful) {
+                                        Toast.makeText(requireContext(), "Рецепт видалено", Toast.LENGTH_SHORT).show()
+                                        findNavController().popBackStack()
+                                    } else {
+                                        Toast.makeText(requireContext(), "Не вдалося видалити", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            } catch (e: Exception) {
+                                withContext(Dispatchers.Main) {
+                                    Toast.makeText(requireContext(), "Помилка: ${e.message}", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        }
+                        dialog.dismiss() // Закриваємо віконце
+                    }
+                    // Кнопка "Скасувати" (нічого не робимо)
+                    .setNegativeButton("Скасувати") { dialog, _ ->
+                        dialog.dismiss() // Просто закриваємо віконце
+                    }
+                    .show() // Показуємо вікно на екрані
+            }
+        } else {
+            buttonEdit.visibility = View.GONE
+            buttonDelete.visibility = View.GONE
+        }
     }
 
-    // ДОДАНО: Метод для роботи з кнопкою "Вподобати"
     private fun setupFavoriteButton(view: View, username: String, recipeId: Long) {
         val heartBtn = view.findViewById<ImageView>(R.id.buttonFavorite)
 
-        // Встановлюємо правильну іконку при відкритті екрана
         heartBtn.setImageResource(if (isFavorite) R.drawable.icon_save_active else R.drawable.icon_save)
 
         heartBtn.setOnClickListener {
@@ -180,7 +227,6 @@ class FragmentViewRecipe : Fragment() {
                     }
 
                     withContext(Dispatchers.Main) {
-                        // Оновлюємо іконку після успішного запиту
                         heartBtn.setImageResource(if (isFavorite) R.drawable.icon_save_active else R.drawable.icon_save)
                         Toast.makeText(context, if (isFavorite) "Додано до закладок!" else "Видалено з закладок", Toast.LENGTH_SHORT).show()
                     }

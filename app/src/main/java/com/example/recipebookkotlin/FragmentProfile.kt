@@ -36,8 +36,19 @@ class FragmentProfile : Fragment() {
         val username = sharedPrefs.getString("USER_USERNAME", "Гість") ?: "Гість"
         val email = sharedPrefs.getString("USER_EMAIL", "")
 
+        // ДОДАНО: Зчитуємо статус адміна
+        val isAdmin = sharedPrefs.getBoolean("IS_ADMIN", false)
+
         // Відображення даних
-        view.findViewById<TextView>(R.id.profileUsername).text = username
+        val textViewUsername = view.findViewById<TextView>(R.id.profileUsername)
+
+        // ДОДАНО: Логіка відображення приставки (Адмін)
+        if (isAdmin) {
+            textViewUsername.text = "$username (Адмін)"
+        } else {
+            textViewUsername.text = username
+        }
+
         view.findViewById<TextView>(R.id.profileEmail).text = email
 
         // Налаштування списку
@@ -52,12 +63,9 @@ class FragmentProfile : Fragment() {
                 val bundle = Bundle().apply { putLong("RECIPE_ID", recipeId) }
                 findNavController().navigate(R.id.fragmentViewRecipe, bundle)
             },
-            // У FragmentProfile:
             onEditClick = { recipeId ->
                 val bundle = Bundle().apply { putLong("RECIPE_ID", recipeId) }
                 findNavController().navigate(R.id.fragment_edit_recipe, bundle)
-                // РОЗКОМЕНТУЙ РЯДОК НИЖЧЕ, коли створиш екран для створення/редагування:
-                // findNavController().navigate(R.id.fragmentCreateRecipe, bundle)
                 Toast.makeText(requireContext(), "Відкриваємо редагування: $recipeId", Toast.LENGTH_SHORT).show()
             },
             onDeleteClick = { recipeId ->
@@ -108,7 +116,6 @@ class FragmentProfile : Fragment() {
         val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
 
         // Дістаємо ID поточного користувача.
-        // ЗВЕРНИ УВАГУ: Переконайся, що при авторизації ти зберігаєш "USER_ID" як Long або Int
         val userId = sharedPrefs.getLong("USER_ID", -1L)
 
         if (userId == -1L) {
