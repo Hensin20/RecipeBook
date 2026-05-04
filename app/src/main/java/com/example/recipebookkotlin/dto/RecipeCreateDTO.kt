@@ -4,7 +4,7 @@ package com.example.recipebookkotlin.dto
 data class RecipeCreateDTO(
     val title: String,
     val description: String,
-    val categoryName: String, // Тепер тут Name замість Id
+    val categoryNames: List<String>? = emptyList(),// Тепер тут Name замість Id
     val authorName: String,   // Додали ім'я автора
     val instruction: String,
     val ingredients: List<IngredientDTO> // Використовуємо нову назву класу

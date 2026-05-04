@@ -144,26 +144,17 @@
                 android:textSize="18sp"
                 android:fontFamily="@font/opensans_bold"/>
 
-            <com.google.android.material.textfield.TextInputLayout
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+            <TextView
+                android:id="@+id/textViewSelectCategory"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:hintEnabled="false">
-
-                <AutoCompleteTextView
-                    android:id="@+id/autoCompleteCategory"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="12dp"
-                    android:textColor="@color/editeText"
-                    android:background="@drawable/background_edittext"
-                    android:popupBackground="@drawable/background_edittext"
-                    android:inputType="none"
-                    android:backgroundTint="@null" />
-            </com.google.android.material.textfield.TextInputLayout>
+                android:background="@drawable/background_edittext"
+                android:padding="12dp"
+                android:textColor="@color/editeText"
+                android:textSize="16sp"
+                android:hint="Натисніть, щоб вибрати категорії"
+                android:textColorHint="@color/gray" />
 
             <TextView
                 android:layout_width="match_parent"

@@ -65,12 +65,10 @@ interface RecipeApi {
     @GET("/api/categories")
     suspend fun getAllCategories(): List<CategoryDTO>
 
-    // Пошук за назвою або інгредієнтом
-    @GET("/api/recipes/search")
+    @GET("/api/recipes/search-by-name") // <--- ВПИШИ "-by-name"
     suspend fun searchRecipes(
         @Query("query") query: String
     ): List<RecipeDTO>
-
     // Пошук рецептів за назвою категорії
     @GET("/api/recipes/search-by-category")
     suspend fun searchByCategory(

@@ -43,7 +43,7 @@ class RecipeAdapter(
         val recipe = recipes[position]
 
         holder.title.text = recipe.title
-        holder.category.text = recipe.categoryName
+        holder.category.text = recipe.categoryNames?.joinToString(", ") ?: "Без категорії"
         holder.author.text = recipe.authorName
 
         val formattedRating = String.format("%.1f", recipe.averageRating)

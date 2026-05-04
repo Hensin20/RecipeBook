@@ -1,6 +1,8 @@
 package com.example.recipebookkotlin
 
 import android.os.Bundle
+import android.widget.ArrayAdapter
+import android.widget.AutoCompleteTextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -65,6 +67,10 @@ class FragmentCatalog : Fragment() {
         // -------------------------
 
         val searchView = view.findViewById<SearchView>(R.id.searchView)
+        val searchAutoComplete = searchView.findViewById<android.widget.AutoCompleteTextView>(androidx.appcompat.R.id.search_src_text)
+        // Робимо текст чорним
+        searchAutoComplete.setTextColor(android.graphics.Color.BLACK)
+        searchAutoComplete.setHintTextColor(android.graphics.Color.GRAY)
         val recycler = view.findViewById<RecyclerView>(R.id.recyclerViewCatalog)
 
         recipeAdapter = RecipeAdapter(
@@ -145,11 +151,51 @@ class FragmentCatalog : Fragment() {
                 allRecipes = recipes
                 withContext(Dispatchers.Main) {
                     recipeAdapter.updateData(recipes)
+
+                    // --- НОВИЙ КОД ДЛЯ АВТОЗАПОВНЕННЯ ---
+                    setupAutoComplete(recipes)
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Не вдалося завантажити рецепти", Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+    }
+
+    private fun setupAutoComplete(recipes: List<RecipeDTO>) {
+        // 1. Збираємо всі назви рецептів
+        val recipeNames = recipes.map { it.title }
+
+        // 2. Збираємо всі унікальні інгредієнти (якщо у RecipeDTO є список ingredients)
+        val ingredientNames = recipes.flatMap { it.ingredients?.map { ing -> ing.name } ?: emptyList() }
+
+        // 3. Об'єднуємо все в один список і прибираємо дублікати
+        val allSuggestions = (recipeNames + ingredientNames).distinct()
+
+        // 4. Знаходимо внутрішнє поле SearchView для автозаповнення (використовуємо публічний AutoCompleteTextView)
+        val searchView = view?.findViewById<SearchView>(R.id.searchView)
+        val searchAutoComplete = searchView?.findViewById<AutoCompleteTextView>(androidx.appcompat.R.id.search_src_text)
+
+        if (searchAutoComplete != null) {
+
+            // --- ДОДАЙ ЦЕЙ РЯДОК: примусово робимо фон списку світлим ---
+            // Можеш використати R.color.white або твій R.drawable.background_edittext
+            searchAutoComplete.setDropDownBackgroundResource(android.R.color.white)
+
+            // 5. Створюємо адаптер зі списком підказок
+            val adapter = ArrayAdapter<String>(
+                requireContext(),
+                R.layout.item_search_suggestion,
+                allSuggestions
+            )
+            searchAutoComplete.setAdapter(adapter)
+
+            // 6. Що робити, коли користувач натискає на підказку
+            searchAutoComplete.setOnItemClickListener { parent, _, position, _ ->
+                val selectedWord = parent.getItemAtPosition(position) as String
+                // Вставляємо слово в пошук і автоматично запускаємо його (submit = true)
+                searchView.setQuery(selectedWord, true)
             }
         }
     }

@@ -86,7 +86,8 @@ class FragmentViewRecipe : Fragment() {
 
     private fun populateUI(view: View, recipe: com.example.recipebookkotlin.dto.RecipeDTO){
         view.findViewById<TextView>(R.id.textView_recipeTitle).text = recipe.title
-        view.findViewById<TextView>(R.id.textView_recipeCategory).text = recipe.categoryName
+        val categoriesText = recipe.categoryNames?.joinToString(", ")
+        view.findViewById<TextView>(R.id.textView_recipeCategory).text = if (!categoriesText.isNullOrEmpty()) categoriesText else "Без категорії"
         view.findViewById<TextView>(R.id.textView_recipeAuthor).text = "Шеф: ${recipe.authorName}"
         view.findViewById<TextView>(R.id.textView_recipeDescription).text = recipe.description
         view.findViewById<TextView>(R.id.textView_recipeInstruction).text = recipe.instruction ?: "Інструкція відсутня"

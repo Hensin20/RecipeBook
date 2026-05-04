@@ -26,7 +26,7 @@ class FragmentEditRecipe : Fragment() {
     // UI Елементи
     private lateinit var etTitle: EditText
     private lateinit var etDescription: EditText
-    private lateinit var etCategory: AutoCompleteTextView
+    private lateinit var tvCategory: TextView
     private lateinit var etInstructions: EditText
     private lateinit var btnSave: Button
 
@@ -36,6 +36,10 @@ class FragmentEditRecipe : Fragment() {
     private lateinit var btnAddIngredient: ImageButton
     private lateinit var ingredientContainer: LinearLayout
     private val ingredientList = mutableListOf<IngredientDTO>()
+
+    // Списки для категорій
+    private var allCategoryNames = emptyArray<String>()
+    private val selectedCategories = mutableListOf<String>()
 
     // Фото
     private lateinit var btnEditPhoto: ImageButton
@@ -59,10 +63,9 @@ class FragmentEditRecipe : Fragment() {
 
         recipeId = arguments?.getLong("RECIPE_ID", -1L) ?: -1L
 
-        // Ініціалізація View
         etTitle = view.findViewById(R.id.editTextTitle)
         etDescription = view.findViewById(R.id.editTextDescription)
-        etCategory = view.findViewById(R.id.editTextCategory)
+        tvCategory = view.findViewById(R.id.textViewSelectCategory)
         etInstructions = view.findViewById(R.id.editTextInstructions)
         btnSave = view.findViewById(R.id.buttonSaveRecipe)
 
@@ -74,15 +77,12 @@ class FragmentEditRecipe : Fragment() {
         btnEditPhoto = view.findViewById(R.id.ImageButton_edit_photo)
         imagesContainer = view.findViewById(R.id.imagesEditPreviewContainer)
 
-        // 1. ЗАВАНТАЖУЄМО КАТЕГОРІЇ З БАЗИ
         loadCategories()
 
-        // 2. НАЛАШТУВАННЯ КНОПКИ ФОТО
         btnEditPhoto.setOnClickListener {
             pickImagesLauncher.launch("image/*")
         }
 
-        // 3. ДОДАВАННЯ НОВОГО ІНГРЕДІЄНТА
         btnAddIngredient.setOnClickListener {
             val name = etIngredientName.text.toString().trim()
             val quantity = etIngredientQuantity.text.toString().trim()
@@ -90,7 +90,9 @@ class FragmentEditRecipe : Fragment() {
             if (name.isNotEmpty() && quantity.isNotEmpty()) {
                 val newIngredient = IngredientDTO(name = name, quantity = quantity)
                 ingredientList.add(newIngredient)
-                addIngredientToUI(newIngredient)
+
+                // Викликаємо наш новий красивий метод
+                updateIngredientList()
 
                 etIngredientName.text.clear()
                 etIngredientQuantity.text.clear()
@@ -109,28 +111,45 @@ class FragmentEditRecipe : Fragment() {
         btnSave.setOnClickListener { saveEditedRecipe() }
     }
 
-    // НОВИЙ МЕТОД: Завантаження категорій з API
     private fun loadCategories() {
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val categories = ApiClient.categoryApi.getCategory()
-                val names = categories.map { it.name }
-
-                withContext(Dispatchers.Main) {
-                    val context = context ?: return@withContext
-                    val adapter = ArrayAdapter(context, R.layout.item_dropdown_category, names)
-                    etCategory.setAdapter(adapter)
-
-                    // Робимо так, щоб не можна було вводити текст вручну
-                    etCategory.inputType = android.text.InputType.TYPE_NULL
-
-                    etCategory.setOnClickListener {
-                        etCategory.showDropDown()
-                    }
-                }
+                allCategoryNames = categories.map { it.name }.toTypedArray()
             } catch (e: Exception) {
                 android.util.Log.e("API_ERROR", "Не вдалося завантажити категорії: ${e.message}")
             }
+        }
+
+        tvCategory.setOnClickListener {
+            if (allCategoryNames.isEmpty()) {
+                Toast.makeText(context, "Категорії ще завантажуються...", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val checkedItems = BooleanArray(allCategoryNames.size) { i ->
+                selectedCategories.contains(allCategoryNames[i])
+            }
+
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Виберіть категорії")
+                .setMultiChoiceItems(allCategoryNames, checkedItems) { _, position, isChecked ->
+                    val category = allCategoryNames[position]
+                    if (isChecked) {
+                        selectedCategories.add(category)
+                    } else {
+                        selectedCategories.remove(category)
+                    }
+                }
+                .setPositiveButton("Зберегти") { _, _ ->
+                    tvCategory.text = if (selectedCategories.isNotEmpty()) {
+                        selectedCategories.joinToString(", ")
+                    } else {
+                        "Натисніть, щоб вибрати категорії"
+                    }
+                }
+                .setNegativeButton("Скасувати", null)
+                .show()
         }
     }
 
@@ -141,15 +160,19 @@ class FragmentEditRecipe : Fragment() {
                 withContext(Dispatchers.Main) {
                     etTitle.setText(recipe.title)
                     etDescription.setText(recipe.description)
-                    // Важливо: filter = false, щоб AutoCompleteTextView просто відобразив текст без фільтрації списку
-                    etCategory.setText(recipe.categoryName, false)
                     etInstructions.setText(recipe.instruction)
+
+                    recipe.categoryNames?.let {
+                        selectedCategories.clear()
+                        selectedCategories.addAll(it)
+                        tvCategory.text = selectedCategories.joinToString(", ")
+                    }
 
                     recipe.ingredients?.let { ingredients ->
                         ingredientList.clear()
                         ingredientList.addAll(ingredients)
-                        ingredientContainer.removeAllViews()
-                        ingredients.forEach { addIngredientToUI(it) }
+                        // Оновлюємо список інгредієнтів нашим новим методом
+                        updateIngredientList()
                     }
 
                     recipe.imageUrls?.let { urls ->
@@ -166,19 +189,26 @@ class FragmentEditRecipe : Fragment() {
         }
     }
 
-    private fun addIngredientToUI(ingredient: IngredientDTO) {
-        val textView = TextView(requireContext()).apply {
-            text = "• ${ingredient.name} - ${ingredient.quantity} (Натисніть, щоб видалити)"
-            textSize = 16f
-            setTextColor(resources.getColor(R.color.editeText, null))
-            setPadding(0, 8, 0, 8)
+    private fun updateIngredientList() {
+        ingredientContainer.removeAllViews()
 
-            setOnClickListener {
+        ingredientList.forEach { ingredient ->
+            val itemView = layoutInflater.inflate(R.layout.ingredient_item, ingredientContainer, false)
+
+            val nameText = itemView.findViewById<TextView>(R.id.ingredientName)
+            val quantityText = itemView.findViewById<TextView>(R.id.ingredientQuantity)
+            val deleteBtn = itemView.findViewById<ImageView>(R.id.deleteButton)
+
+            nameText.text = ingredient.name
+            quantityText.text = ingredient.quantity
+
+            deleteBtn.setOnClickListener {
                 ingredientList.remove(ingredient)
-                ingredientContainer.removeView(this)
+                updateIngredientList()
             }
+
+            ingredientContainer.addView(itemView)
         }
-        ingredientContainer.addView(textView)
     }
 
     private fun updateImagePreviews() {
@@ -206,11 +236,10 @@ class FragmentEditRecipe : Fragment() {
     private fun saveEditedRecipe() {
         val title = etTitle.text.toString().trim()
         val description = etDescription.text.toString().trim()
-        val category = etCategory.text.toString().trim()
         val instructions = etInstructions.text.toString().trim()
 
-        if (title.isEmpty() || description.isEmpty()) {
-            Toast.makeText(requireContext(), "Заповніть обов'язкові поля", Toast.LENGTH_SHORT).show()
+        if (title.isEmpty() || description.isEmpty() || selectedCategories.isEmpty()) {
+            Toast.makeText(requireContext(), "Заповніть назву, опис та виберіть категорію", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -218,7 +247,7 @@ class FragmentEditRecipe : Fragment() {
         val userId = sharedPrefs.getLong("USER_ID", -1L)
 
         if (userId == -1L) {
-            Toast.makeText(requireContext(), "Помилка: USER_ID не знайдено. Перезайдіть в акаунт!", Toast.LENGTH_LONG).show()
+            Toast.makeText(requireContext(), "Помилка: Перезайдіть в акаунт!", Toast.LENGTH_LONG).show()
             return
         }
 
@@ -226,7 +255,7 @@ class FragmentEditRecipe : Fragment() {
             id = recipeId,
             title = title,
             description = description,
-            categoryName = category,
+            categoryNames = selectedCategories,
             instruction = instructions,
             ingredients = ingredientList,
             authorName = "",
@@ -243,14 +272,11 @@ class FragmentEditRecipe : Fragment() {
                         Toast.makeText(requireContext(), "Рецепт оновлено!", Toast.LENGTH_SHORT).show()
                         findNavController().popBackStack()
                     } else {
-                        val errorBody = response.errorBody()?.string() ?: "Невідома помилка"
-                        android.util.Log.e("SERVER_ERROR", "Код: ${response.code()}, Текст: $errorBody")
                         Toast.makeText(requireContext(), "Сервер відмовив. Код: ${response.code()}", Toast.LENGTH_LONG).show()
                     }
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    android.util.Log.e("NETWORK_ERROR", "Помилка: ${e.message}")
                     Toast.makeText(requireContext(), "Збій: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }

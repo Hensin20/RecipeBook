@@ -10,14 +10,12 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.EditText
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.util.Consumer
 import androidx.lifecycle.lifecycleScope
 import coil.load
 import com.example.recipebookkotlin.dto.IngredientDTO
@@ -33,30 +31,26 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.text.clear
-import kotlin.toString
 
 class FragmentCreate : Fragment() {
     data class Ingredient(val name: String, val quantity: String)
-    data class CookingStep(val text: String)
 
-
-    private var categoriesList = listOf<com.example.recipebookkotlin.dto.CategoryDTO>()
     private val ingredients = mutableListOf<Ingredient>()
-    private val stepList = mutableListOf<CookingStep>()
+
+    // ДОДАНО: Списки для мульти-вибору категорій
+    private var allCategoryNames = emptyArray<String>()
+    private val selectedCategories = mutableListOf<String>()
 
     private val selectedImageList = mutableListOf<Uri>()
     private val pickMultipleImageLauncher = registerForActivityResult(
         ActivityResultContracts.PickMultipleVisualMedia(5)
-    ) {uris ->
+    ) { uris ->
         if(uris.isNotEmpty()){
             selectedImageList.clear()
             selectedImageList.addAll(uris)
             updateImagePreview()
         }
-
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -64,8 +58,6 @@ class FragmentCreate : Fragment() {
     ): View? {
         return inflater.inflate(R.layout.fragment_create, container, false)
     }
-
-
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -85,21 +77,18 @@ class FragmentCreate : Fragment() {
         setupIngredientActions(view)
         loadIngredientData(view)
 
-        //Category
+        // Category (ОНОВЛЕНО)
         loadCategoryData(view)
-
     }
 
     private fun saveRecipe(view: View) {
-        android.util.Log.d("RECIPE_DEBUG", "1. Збираємо дані...")
-
         val title = view.findViewById<EditText>(R.id.editTextText_title).text.toString().trim()
         val description = view.findViewById<EditText>(R.id.editTextText_description).text.toString().trim()
         val instruction = view.findViewById<EditText>(R.id.editTextText_instruction).text.toString().trim()
-        val categoryName = view.findViewById<AutoCompleteTextView>(R.id.autoCompleteCategory).text.toString()
 
-        if (title.isEmpty() || categoryName.isEmpty() || ingredients.isEmpty()) {
-            Toast.makeText(requireContext(), "Заповніть назву, категорію та додайте інгредієнти!", Toast.LENGTH_SHORT).show()
+        // ПЕРЕВІРКА: чи вибрали хоч одну категорію
+        if (title.isEmpty() || selectedCategories.isEmpty() || ingredients.isEmpty()) {
+            Toast.makeText(requireContext(), "Заповніть назву, виберіть категорію та додайте інгредієнти!", Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -109,7 +98,7 @@ class FragmentCreate : Fragment() {
         val recipeDTO = RecipeCreateDTO(
             title = title,
             description = description,
-            categoryName = categoryName, // Просто передаємо текст "Десерти"
+            categoryNames = selectedCategories, // ОНОВЛЕНО: передаємо СПИСОК категорій
             authorName = currentUsername,
             instruction = instruction,
             ingredients = ingredients.map { IngredientDTO(it.name, it.quantity) }
@@ -121,14 +110,12 @@ class FragmentCreate : Fragment() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                android.util.Log.d("RECIPE_DEBUG", "2. Відправляємо на сервер...")
                 ApiClient.recipeApi.createRecipe(recipeRequestBody, imagesParts)
                 withContext(Dispatchers.Main) {
                     Toast.makeText(requireContext(), "Рецепт успішно створено!", Toast.LENGTH_LONG).show()
                 }
             } catch (e: Exception) {
                 withContext(Dispatchers.Main) {
-                    android.util.Log.e("RECIPE_DEBUG", "Помилка: ${e.message}", e)
                     Toast.makeText(requireContext(), "Помилка при збереженні", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -161,7 +148,6 @@ class FragmentCreate : Fragment() {
                 }
                 scaleType = ImageView.ScaleType.CENTER_CROP
                 setBackgroundResource((R.drawable.background_edittext))
-
                 clipToOutline = true
                 load(uri){
                     crossfade(true)
@@ -184,18 +170,12 @@ class FragmentCreate : Fragment() {
                 val rawIngredients = ApiClient.ingredientApi.getIngredients()
                 val ingredientNames = rawIngredients.map { it.name }
 
-                // ЛОГ ДЛЯ ПЕРЕВІРКИ
-                android.util.Log.d("DEBUG_API", "Отримано інгредієнтів: ${ingredientNames.size}")
-                android.util.Log.d("DEBUG_API", "Дані: $ingredientNames")
-
                 withContext(Dispatchers.Main) {
                     val adapter = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, ingredientNames)
                     nameInput.setAdapter(adapter)
-                    // Примусово оновимо поріг
                     nameInput.threshold = 1
                 }
             } catch (e: Exception) {
-                android.util.Log.e("DEBUG_API", "Помилка мережі: ${e.message}")
                 e.printStackTrace()
             }
         }
@@ -216,46 +196,64 @@ class FragmentCreate : Fragment() {
                 ingredients.add(newIngredient)
                 updateIngredientList(listContainer)
 
-                // Очищуємо поля для наступного введення
                 nameInput.text.clear()
                 quantityInput.text.clear()
-                nameInput.requestFocus() // Повертаємо фокус на назву
+                nameInput.requestFocus()
             }
         }
     }
 
+    // ОНОВЛЕНО: Логіка для вибору КІЛЬКОХ категорій
     private fun loadCategoryData(view: View) {
-        val categoryInput = view.findViewById<AutoCompleteTextView>(R.id.autoCompleteCategory)
+        val tvCategory = view.findViewById<TextView>(R.id.textViewSelectCategory)
 
+        // 1. Завантажуємо категорії з сервера
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val categories = ApiClient.categoryApi.getCategory()
-                val names = categories.map { it.name }
-
-                withContext(Dispatchers.Main) {
-                    val context = context ?: return@withContext
-                    // Використовуємо правильну розмітку для випадаючого списку
-                    val adapter = ArrayAdapter(context, R.layout.item_dropdown_category, names)
-                    categoryInput.setAdapter(adapter)
-
-                    // Для Exposed Dropdown Menu важливо вимкнути введення тексту,
-                    // щоб воно працювало як Spinner
-                    categoryInput.inputType = android.text.InputType.TYPE_NULL
-
-                    categoryInput.setOnClickListener {
-                        categoryInput.showDropDown()
-                    }
-                }
+                allCategoryNames = categories.map { it.name }.toTypedArray()
             } catch (e: Exception) {
                 android.util.Log.e("API_ERROR", "Categories failed: ${e.message}")
             }
+        }
+
+        // 2. Відкриваємо діалог при натисканні
+        tvCategory.setOnClickListener {
+            if (allCategoryNames.isEmpty()) {
+                Toast.makeText(context, "Категорії ще завантажуються...", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Масив галочок (true, якщо категорія вже є в нашому списку selectedCategories)
+            val checkedItems = BooleanArray(allCategoryNames.size) { i ->
+                selectedCategories.contains(allCategoryNames[i])
+            }
+
+            android.app.AlertDialog.Builder(requireContext())
+                .setTitle("Виберіть категорії")
+                .setMultiChoiceItems(allCategoryNames, checkedItems) { _, position, isChecked ->
+                    val category = allCategoryNames[position]
+                    if (isChecked) {
+                        selectedCategories.add(category)
+                    } else {
+                        selectedCategories.remove(category)
+                    }
+                }
+                .setPositiveButton("Зберегти") { _, _ ->
+                    // Виводимо вибрані категорії на екран (через кому)
+                    tvCategory.text = if (selectedCategories.isNotEmpty()) {
+                        selectedCategories.joinToString(", ")
+                    } else {
+                        "Натисніть, щоб вибрати категорії"
+                    }
+                }
+                .setNegativeButton("Скасувати", null)
+                .show()
         }
     }
 
     private fun updateIngredientList(container: LinearLayout) {
         container.removeAllViews()
-
-        // Використання циклу по об'єктах безпечніше за індекси
         ingredients.forEach { ing ->
             val itemView = layoutInflater.inflate(R.layout.ingredient_item, container, false)
             val nameText = itemView.findViewById<TextView>(R.id.ingredientName)
@@ -266,11 +264,10 @@ class FragmentCreate : Fragment() {
             quantityText.text = ing.quantity
 
             deleteBtn.setOnClickListener {
-                ingredients.remove(ing) // Видаляємо саме цей об'єкт
+                ingredients.remove(ing)
                 updateIngredientList(container)
             }
             container.addView(itemView)
         }
     }
-
 }
