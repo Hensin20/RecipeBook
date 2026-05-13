@@ -218,7 +218,16 @@ class FragmentEditRecipe : Fragment() {
             val imageView = ImageView(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(200, 200).apply { setMargins(8, 0, 8, 0) }
                 scaleType = ImageView.ScaleType.CENTER_CROP
-                load("${ApiClient.ipAdres}/uploads/$url")
+
+                // Виправляємо формування посилання
+                val baseUrl = ApiClient.ipAdres.trimEnd('/')
+                val fullUrl = "$baseUrl/uploads/$url"
+
+                load(fullUrl) {
+                    crossfade(true)
+                    placeholder(R.drawable.icon_add_photo)
+                    error(R.drawable.icon_add_photo)
+                }
             }
             imagesContainer.addView(imageView)
         }
@@ -227,7 +236,7 @@ class FragmentEditRecipe : Fragment() {
             val imageView = ImageView(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(200, 200).apply { setMargins(8, 0, 8, 0) }
                 scaleType = ImageView.ScaleType.CENTER_CROP
-                setImageURI(uri)
+                setImageURI(uri) // Локальні URI залишаємо як є, з ними проблем немає
             }
             imagesContainer.addView(imageView)
         }

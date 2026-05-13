@@ -70,7 +70,6 @@ class FragmentViewRecipe : Fragment() {
 
                 withContext(Dispatchers.Main) {
                     // Перевіряємо, чи поточний користувач є автором або адміністратором
-                    // Припустимо, що у RecipeDTO є поле authorName
                     isAuthorOrAdmin = (username == recipe.authorName) || isAdmin
                     populateUI(view, recipe)
                     setupFavoriteButton(view, username, recipe.id)
@@ -131,19 +130,28 @@ class FragmentViewRecipe : Fragment() {
 
         recipe.imageUrls?.forEach { imageUrl ->
             val imageView = ImageView(requireContext()).apply {
+                // Задаємо ширину фото (можеш змінити 300 на інше число, щоб зробити його ширшим/вужчим)
                 val widthPx = (300 * resources.displayMetrics.density).toInt()
                 layoutParams = LinearLayout.LayoutParams(
                     widthPx,
                     LinearLayout.LayoutParams.MATCH_PARENT
                 ).apply { setMargins(0, 0, 24, 0) }
 
-                scaleType = ImageView.ScaleType.CENTER_CROP
-                clipToOutline = true
-                setBackgroundResource(R.drawable.background_edittext)
+                scaleType = ImageView.ScaleType.FIT_CENTER
 
-                val fullUrl = "$ipAdres/uploads/$imageUrl"
+                // Видалено clipToOutline та setBackgroundResource, щоб прибрати білу рамку
+
+                // Виправляємо подвійний слеш перед /uploads/
+                val baseUrl = ipAdres.trimEnd('/')
+                val fullUrl = "$baseUrl/uploads/$imageUrl"
+
                 load(fullUrl) {
                     crossfade(true)
+                    placeholder(R.drawable.icon_add_photo) // Показувати поки вантажиться
+                    error(R.drawable.icon_add_photo)       // Показувати при помилці (404)
+
+                    // ДОДАНО: заокруглення самої фотографії
+                    transformations(coil.transform.RoundedCornersTransformation(40f))
                 }
             }
             imagesContainer.addView(imageView)

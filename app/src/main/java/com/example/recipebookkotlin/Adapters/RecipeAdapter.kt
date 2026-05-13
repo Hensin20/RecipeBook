@@ -3,7 +3,7 @@ package com.example.recipebookkotlin.Adapters
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton // Додано імпорт ImageButton
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
@@ -52,9 +52,14 @@ class RecipeAdapter(
         val firstImage = recipe.imageUrls?.firstOrNull()
 
         if (firstImage != null) {
-            val fullUrl = "$ipAdres/uploads/$firstImage"
+            // trimEnd('/') забирає зайвий слеш з ipAdres, щоб не було помилки "//"
+            val baseUrl = ipAdres.trimEnd('/')
+            val fullUrl = "$baseUrl/uploads/$firstImage"
+
             holder.image.load(fullUrl) {
                 crossfade(true)
+                placeholder(R.drawable.icon_add_photo) // Показувати, поки вантажиться
+                error(R.drawable.icon_add_photo)       // Показувати, якщо сервер видав помилку 404
             }
         } else {
             holder.image.setImageResource(R.drawable.icon_add_photo)

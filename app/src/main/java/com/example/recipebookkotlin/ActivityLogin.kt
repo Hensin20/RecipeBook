@@ -4,8 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog // Додано для віконця
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -28,6 +30,17 @@ class ActivityLogin : AppCompatActivity() {
             insets
         }
 
+        // 1. ЗАВАНТАЖЕННЯ ЗБЕРЕЖЕНОГО IP ПРИ СТАРТІ ДОДАТКА
+        val sharedPreferences = getSharedPreferences("RecipeBookPrefs", MODE_PRIVATE)
+        val savedIp = sharedPreferences.getString("SERVER_IP", "http://10.131.139.162:8080/") ?: "http://10.131.139.162:8080/"
+        ApiClient.updateBaseUrl(savedIp) // Передаємо адресу в Retrofit
+
+        // 2. ЗНАХОДИМО НАШ "СЕКРЕТНИЙ" БАКЛАЖАН
+        val imgEggplant = findViewById<ImageView>(R.id.imageViewBackground8)
+        imgEggplant.setOnClickListener {
+            showIpConfigDialog()
+        }
+
         val editEmail = findViewById<EditText>(R.id.editEmail)
         val editPassword = findViewById<EditText>(R.id.editPassword)
         val btnLogin = findViewById<Button>(R.id.buttonLogin)
@@ -48,7 +61,6 @@ class ActivityLogin : AppCompatActivity() {
                     if (response.isSuccessful) {
                         val user = response.body()
 
-                        val sharedPreferences = getSharedPreferences("RecipeBookPrefs", MODE_PRIVATE)
                         val editor = sharedPreferences.edit()
 
                         editor.putLong("USER_ID", user?.id ?: -1L)
@@ -73,9 +85,52 @@ class ActivityLogin : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<User>, t: Throwable) {
-                    Toast.makeText(this@ActivityLogin, "Помилка мережі: ${t.message}", Toast.LENGTH_LONG).show()
+                    Toast.makeText(this@ActivityLogin, "Помилка мережі: Перевірте IP сервера!", Toast.LENGTH_LONG).show()
                 }
             })
         }
+    }
+
+    // 3. ФУНКЦІЯ ДЛЯ ВІДОБРАЖЕННЯ ВІКОНЦЯ НАЛАШТУВАНЬ
+    private fun showIpConfigDialog() {
+        val sharedPreferences = getSharedPreferences("RecipeBookPrefs", MODE_PRIVATE)
+        val currentIp = sharedPreferences.getString("SERVER_IP", "http://10.131.139.162:8080/")
+
+        // Створюємо поле для вводу тексту
+        val editText = EditText(this).apply {
+            setText(currentIp)
+            setPadding(50, 50, 50, 50)
+            hint = "http://192.168.X.X:8080/"
+        }
+
+        // Створюємо спливаюче вікно
+        AlertDialog.Builder(this)
+            .setTitle("Налаштування сервера ⚙️")
+            .setMessage("Введіть нову IP-адресу сервера (не забудьте порт і слеш в кінці):")
+            .setView(editText)
+            .setPositiveButton("Зберегти") { _, _ ->
+                var newIp = editText.text.toString().trim()
+
+                if (newIp.isNotEmpty()) {
+                    // Автоматично додаємо слеш в кінці, якщо користувач забув
+                    if (!newIp.endsWith("/")) {
+                        newIp += "/"
+                    }
+                    // Автоматично додаємо http://, якщо користувач забув
+                    if (!newIp.startsWith("http")) {
+                        newIp = "http://$newIp"
+                    }
+
+                    // Зберігаємо нову адресу в пам'ять телефону
+                    sharedPreferences.edit().putString("SERVER_IP", newIp).apply()
+
+                    // Відразу оновлюємо ApiClient
+                    ApiClient.updateBaseUrl(newIp)
+
+                    Toast.makeText(this, "IP змінено на: $newIp", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Скасувати", null)
+            .show()
     }
 }
