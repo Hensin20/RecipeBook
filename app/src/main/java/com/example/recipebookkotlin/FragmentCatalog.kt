@@ -3,6 +3,8 @@ package com.example.recipebookkotlin
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
+import android.widget.ImageButton
+import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -26,8 +28,10 @@ class FragmentCatalog : Fragment() {
     private lateinit var recipeAdapter: RecipeAdapter
     private var allRecipes = listOf<RecipeDTO>()
 
-    // Змінна для контролю пошукових запитів (захист від спаму)
     private var searchJob: Job? = null
+
+    // Змінна для відстеження поточного типу пошуку
+    private var isSearchByIngredient = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -39,10 +43,8 @@ class FragmentCatalog : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // --- ДОДАЄМО КАТЕГОРІЇ ---
+        // --- КАТЕГОРІЇ ---
         val recyclerCategories = view.findViewById<RecyclerView>(R.id.recyclerViewCategories)
-
-        // Робимо список ГОРИЗОНТАЛЬНИМ
         recyclerCategories.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
 
         val categoryAdapter = com.example.recipebookkotlin.Adapters.CategoryAdapter(emptyList()) { selectedCategory ->
@@ -60,17 +62,16 @@ class FragmentCatalog : Fragment() {
             }
         }
         recyclerCategories.adapter = categoryAdapter
-
-        // Завантажуємо категорії
         val myCategories = listOf("Сніданки", "Обіди", "Вечері", "Десерти", "Випічка", "Напої", "Салати")
         categoryAdapter.updateData(myCategories)
         // -------------------------
 
         val searchView = view.findViewById<SearchView>(R.id.searchView)
-        val searchAutoComplete = searchView.findViewById<android.widget.AutoCompleteTextView>(androidx.appcompat.R.id.search_src_text)
-        // Робимо текст чорним
+        val searchAutoComplete = searchView.findViewById<AutoCompleteTextView>(androidx.appcompat.R.id.search_src_text)
         searchAutoComplete.setTextColor(android.graphics.Color.BLACK)
         searchAutoComplete.setHintTextColor(android.graphics.Color.GRAY)
+
+        val btnFilter = view.findViewById<ImageButton>(R.id.btnSearchFilter)
         val recycler = view.findViewById<RecyclerView>(R.id.recyclerViewCatalog)
 
         recipeAdapter = RecipeAdapter(
@@ -84,15 +85,53 @@ class FragmentCatalog : Fragment() {
         recycler.adapter = recipeAdapter
         recycler.layoutManager = LinearLayoutManager(context)
 
-        // Логіка пошуку
+        // Налаштування PopupMenu для кнопки фільтра
+        btnFilter.setOnClickListener { filterView ->
+            val popup = PopupMenu(requireContext(), filterView)
+
+            // Додаємо галочку до поточного обраного пункту
+            val nameTitle = if (!isSearchByIngredient) "✓ За назвою" else "За назвою"
+            val ingredientTitle = if (isSearchByIngredient) "✓ За інгредієнтом" else "За інгредієнтом"
+
+            popup.menu.add(0, 1, 0, nameTitle)
+            popup.menu.add(0, 2, 0, ingredientTitle)
+
+            // ... (всередині btnFilter.setOnClickListener)
+            popup.setOnMenuItemClickListener { item ->
+                when (item.itemId) {
+                    1 -> {
+                        isSearchByIngredient = false
+                        searchView.queryHint = "Введіть назву..."
+                        performSearch(searchView.query.toString())
+                    }
+                    2 -> {
+                        isSearchByIngredient = true
+                        // Змінюємо підказку!
+                        searchView.queryHint = "Напр: сир, помідор, яйця..."
+                        performSearch(searchView.query.toString())
+                    }
+                }
+                true
+            }
+            popup.show()
+        }
+
+        // Логіка пошуку при введенні тексту
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
-                performSearch(query)
+                // Користувач натиснув "Пошук" (Enter на клавіатурі)
+                searchView.clearFocus() // Ховаємо клавіатуру
+                performSearch(query)    // Запускаємо пошук
                 return true
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                performSearch(newText)
+                // Якщо користувач повністю стер текст (натиснув хрестик),
+                // повертаємо весь список рецептів
+                if (newText.isNullOrBlank()) {
+                    recipeAdapter.updateData(allRecipes)
+                }
+                // Тут ми більше не викликаємо performSearch(newText)!
                 return true
             }
         })
@@ -100,45 +139,41 @@ class FragmentCatalog : Fragment() {
         loadInitialData()
     }
 
-    // --- ОНОВЛЕНИЙ РОЗУМНИЙ ПОШУК ЗАТРИМКОЮ (DEBOUNCE) ---
     private fun performSearch(query: String?) {
-        // Одразу скасовуємо попередній запит, якщо користувач продовжує друкувати
-        searchJob?.cancel()
-
         if (query.isNullOrBlank()) {
             recipeAdapter.updateData(allRecipes)
             return
         }
 
-        // Створюємо новий запит
-        searchJob = lifecycleScope.launch(Dispatchers.IO) {
-            // Чекаємо 500 мілісекунд. Якщо за цей час користувач введе нову літеру,
-            // цей Job буде скасовано (рядок searchJob?.cancel() вище)
-            delay(500)
-
+        lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val results = if (query.contains(",")) {
-                    // Якщо в запиті є КОМА — шукаємо по комбінації інгредієнтів
-                    ApiClient.recipeApi.searchByIngredients(query)
+                // Вибираємо запит до API залежно від обраного фільтра
+                val results = if (isSearchByIngredient) {
+                    val cleanQuery = query.split(",")
+                        .map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                        .joinToString(",")
+
+                    ApiClient.recipeApi.searchByIngredients(cleanQuery)
                 } else {
-                    // Якщо коми немає — звичайний пошук по назві рецепту
                     ApiClient.recipeApi.searchRecipes(query)
                 }
 
                 withContext(Dispatchers.Main) {
                     recipeAdapter.updateData(results)
-                    // Підказуємо користувачеві, якщо нічого не знайшли
-                    if (results.isEmpty() && query.contains(",")) {
-                        Toast.makeText(requireContext(), "З такими інгредієнтами рецептів немає 😢", Toast.LENGTH_SHORT).show()
+
+                    if (results.isEmpty()) {
+                        val message = if (isSearchByIngredient) {
+                            "Рецептів з такими інгредієнтами не знайдено 😢"
+                        } else {
+                            "Рецептів з такою назвою не знайдено 😢"
+                        }
+                        Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                     }
                 }
             } catch (e: Exception) {
-                // Виводимо помилку ТІЛЬКИ якщо це реальна помилка сервера/мережі,
-                // а не "штучна" помилка через те, що ми самі скасували запит (CancellationException)
-                if (e !is kotlinx.coroutines.CancellationException) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(requireContext(), "Помилка під час пошуку", Toast.LENGTH_SHORT).show()
-                    }
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(requireContext(), "Помилка під час пошуку", Toast.LENGTH_SHORT).show()
                 }
             }
         }
@@ -151,8 +186,6 @@ class FragmentCatalog : Fragment() {
                 allRecipes = recipes
                 withContext(Dispatchers.Main) {
                     recipeAdapter.updateData(recipes)
-
-                    // --- НОВИЙ КОД ДЛЯ АВТОЗАПОВНЕННЯ ---
                     setupAutoComplete(recipes)
                 }
             } catch (e: Exception) {
@@ -164,26 +197,16 @@ class FragmentCatalog : Fragment() {
     }
 
     private fun setupAutoComplete(recipes: List<RecipeDTO>) {
-        // 1. Збираємо всі назви рецептів
         val recipeNames = recipes.map { it.title }
-
-        // 2. Збираємо всі унікальні інгредієнти (якщо у RecipeDTO є список ingredients)
         val ingredientNames = recipes.flatMap { it.ingredients?.map { ing -> ing.name } ?: emptyList() }
-
-        // 3. Об'єднуємо все в один список і прибираємо дублікати
         val allSuggestions = (recipeNames + ingredientNames).distinct()
 
-        // 4. Знаходимо внутрішнє поле SearchView для автозаповнення (використовуємо публічний AutoCompleteTextView)
         val searchView = view?.findViewById<SearchView>(R.id.searchView)
         val searchAutoComplete = searchView?.findViewById<AutoCompleteTextView>(androidx.appcompat.R.id.search_src_text)
 
         if (searchAutoComplete != null) {
-
-            // --- ДОДАЙ ЦЕЙ РЯДОК: примусово робимо фон списку світлим ---
-            // Можеш використати R.color.white або твій R.drawable.background_edittext
             searchAutoComplete.setDropDownBackgroundResource(android.R.color.white)
 
-            // 5. Створюємо адаптер зі списком підказок
             val adapter = ArrayAdapter<String>(
                 requireContext(),
                 R.layout.item_search_suggestion,
@@ -191,10 +214,8 @@ class FragmentCatalog : Fragment() {
             )
             searchAutoComplete.setAdapter(adapter)
 
-            // 6. Що робити, коли користувач натискає на підказку
             searchAutoComplete.setOnItemClickListener { parent, _, position, _ ->
                 val selectedWord = parent.getItemAtPosition(position) as String
-                // Вставляємо слово в пошук і автоматично запускаємо його (submit = true)
                 searchView.setQuery(selectedWord, true)
             }
         }
