@@ -18,47 +18,55 @@
             android:paddingBottom="30dp">
 
             <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:layout_gravity="right">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:weightSum="1">
 
-                <Button
-                    android:id="@+id/btnEdit"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Редагувати"
-                    android:visibility="invisible"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginEnd="10dp"
-                    android:backgroundTint="@color/orange"
-                    android:textColor="@color/white" />
+                    android:layout_weight="1"
+                    android:orientation="horizontal"
+                    android:gravity="start">
 
-                <Button
-                    android:id="@+id/btnDelete"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Видалити"
-                    android:visibility="invisible"
-                    android:layout_marginTop="5dp"
-                    android:layout_marginEnd="20dp"
-                    android:backgroundTint="#FF3B30"
-                    android:textColor="@color/white" />
+                    <Button
+                        android:id="@+id/btnEdit"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Редагувати"
+                        android:visibility="invisible"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginStart="16dp"
+                        android:layout_marginEnd="10dp"
+                        android:backgroundTint="@color/orange"
+                        android:textColor="@color/white" />
+
+                    <Button
+                        android:id="@+id/btnDelete"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Видалити"
+                        android:visibility="invisible"
+                        android:layout_marginTop="5dp"
+                        android:layout_marginEnd="20dp"
+                        android:backgroundTint="#FF3B30"
+                        android:textColor="@color/white" />
+                </LinearLayout>
 
                 <ImageView
                     android:id="@+id/buttonFavorite"
                     android:layout_width="46dp"
                     android:layout_height="46dp"
-                    android:layout_marginTop="10dp"
+                    android:layout_marginTop="5dp"
                     android:layout_marginEnd="16dp"
                     android:padding="8dp"
-                    android:layout_gravity="right"
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:clickable="true"
                     android:focusable="true"
                     android:contentDescription="Додати в обране"
-                    android:src="@drawable/icon_save"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:src="@drawable/icon_save" />
 
             </LinearLayout>
 
@@ -177,15 +185,33 @@
                 android:textSize="16sp"
                 tools:text="1. Наріжте помідори...\n2. Додайте сіль..." />
 
-            <RatingBar
-                android:id="@+id/recipeRatingBar"
-                android:layout_width="wrap_content"
-                android:layout_gravity="center_horizontal"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:numStars="5"
-                android:stepSize="1.0"
-                android:progressTint="@color/textColor" />
+                android:orientation="vertical"
+                android:gravity="center"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="32dp">
 
+                <TextView
+                    android:id="@+id/textView_averageRating"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/textColor"
+                    android:textSize="16sp"
+                    android:fontFamily="@font/opensans_bold"
+                    android:layout_marginBottom="8dp"
+                    tools:text="Середній бал: 4.5" />
+
+                <RatingBar
+                    android:id="@+id/recipeRatingBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:numStars="5"
+                    android:stepSize="1.0"
+                    android:progressTint="@color/orange"
+                    android:secondaryProgressTint="@color/orange" />
+            </LinearLayout>
         </LinearLayout>
 
     </ScrollView>

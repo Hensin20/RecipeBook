@@ -22,7 +22,7 @@
                 android:layout_margin="8dp"
                 android:text="Редагування рецепту"
                 android:textSize="24sp"
-                android:textColor="@color/red"
+                android:textColor="@color/orange"
                 android:gravity="center"
                 android:fontFamily="@font/opensans_bold"/>
 

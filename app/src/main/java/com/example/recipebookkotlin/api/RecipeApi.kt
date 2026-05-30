@@ -38,9 +38,9 @@ interface RecipeApi {
     @POST("/api/recipes/{id}/rate")
     suspend fun rateRecipe(
         @Path("id") id: Long,
+        @Query("userId") userId: Long, // <--- ДОДАЛИ ЦЕЙ ПАРАМЕТР
         @Query("rating") rating: Int
-    ): Double // Сервер поверне нам нове середнє значення
-
+    ): Double
     @GET("/api/recipes/author/{username}")
     suspend fun getRecipesByAuthor(@Path("username") username: String): List<RecipeDTO>
 
@@ -48,18 +48,19 @@ interface RecipeApi {
     suspend fun getFavorites(@Path("username") username: String): List<FavoriteDTO>
 
     // Додати в закладки
-    @POST("/api/favorites/add")
+    @POST("api/favorites/add")
     suspend fun addToFavorites(
         @Query("username") username: String,
-        @Query("recipeId") recipeId: Long
-    ): Response<Unit>
+        @Query("recipeId") recipeId: Long,
+        @Query("collectionName") collectionName: String // ДОДАНО
+    )
 
-    // Видалити з закладок
-    @DELETE("/api/favorites/remove")
+    @DELETE("api/favorites/remove")
     suspend fun removeFromFavorites(
         @Query("username") username: String,
-        @Query("recipeId") recipeId: Long
-    ): Response<Unit>
+        @Query("recipeId") recipeId: Long,
+        @Query("collectionName") collectionName: String // ДОДАНО
+    )
 
     // Отримати список усіх категорій
     @GET("/api/categories")

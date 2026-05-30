@@ -24,7 +24,7 @@
                 android:layout_margin="8dp"
                 android:text="@string/texView_menu_create"
                 android:textSize="24sp"
-                android:textColor="@color/red"
+                android:textColor="@color/orange"
                 android:gravity="center"
                 android:fontFamily="@font/opensans_bold"/>
 

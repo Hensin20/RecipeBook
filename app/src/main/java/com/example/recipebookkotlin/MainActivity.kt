@@ -1,5 +1,6 @@
 package com.example.recipebookkotlin
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
@@ -8,29 +9,25 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.recipebookkotlin.network.ApiClient
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // --- КРОК 1: ПЕРЕВІРКА АВТОРИЗАЦІЇ ---
-        val sharedPreferences = getSharedPreferences("RecipeBookPrefs", MODE_PRIVATE)
-        val savedUserId = sharedPreferences.getLong("USER_ID", -1L)
-
-        if (savedUserId != -1L) {
-            // Користувач вже авторизований! Перекидаємо одразу в меню
-            val intent = Intent(this, ActivityMenu::class.java)
-            startActivity(intent)
-            finish() // Закриваємо цей екран
-            return   // Зупиняємо виконання коду тут, щоб не малювати кнопки нижче
-        }
-        // --------------------------------------
-
-        // Якщо ми дійшли сюди, значить користувач НЕ авторизований.
-        // Показуємо твій стартовий екран з кнопками!
-
         enableEdgeToEdge()
         setContentView(R.layout.activity_main)
+
+        // 1. Відкриваємо ТЕ САМЕ сховище налаштувань, що й у ActivityLogin ("RecipeBookPrefs")
+        val sharedPreferences = getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
+
+        // 2. Дістаємо збережений IP (поставив твій IP з ApiClient як дефолтний)
+        val savedIp = sharedPreferences.getString("SERVER_IP", "http://192.168.31.252:8081/")
+
+        // 3. Передаємо збережений IP у наш ApiClient
+        if (savedIp != null) {
+            ApiClient.updateBaseUrl(savedIp)
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)

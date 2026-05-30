@@ -1,9 +1,11 @@
 package com.example.recipebookkotlin.dto
 
-import java.util.Date
-
 data class FavoriteDTO(
     val id: Long,
-    val recipe: RecipeDTO,
-    val addedAt: String? // Або Date, залежно від того, як ти парсиш дати
+    val addedAt: String?,
+
+    // ДОДАЙ ОСЬ ЦЕЙ РЯДОК:
+    val collectionName: String?,
+
+    val recipe: RecipeDTO
 )

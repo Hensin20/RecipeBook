@@ -15,7 +15,7 @@
         android:elevation="10dp"
         android:fontFamily="@font/opensans_bold"
         android:text="@string/textView_login"
-        android:textColor="@color/red"
+        android:textColor="@color/orange"
         android:textSize="25sp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

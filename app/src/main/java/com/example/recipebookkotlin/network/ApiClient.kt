@@ -9,40 +9,50 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object ApiClient {
 
-    // Вже НЕ const! Тепер цю змінну можна міняти з коду
+    // Повернули твою назву змінної!
     var ipAdres = "http://192.168.31.252:8081/"
 
+    // Приватна змінна для зберігання налаштованого Retrofit
     private var retrofitInstance: Retrofit? = null
 
-    // Функція, яку ми будемо викликати при зміні IP
-    fun updateBaseUrl(newUrl: String) {
-        ipAdres = newUrl
-        retrofitInstance = null // Скидаємо старе з'єднання
+    // Розумна функція, яка віддає існуючий Retrofit або створює новий
+    private fun getRetrofit(): Retrofit {
+        if (retrofitInstance == null) {
+            retrofitInstance = Retrofit.Builder()
+                .baseUrl(ipAdres) // Використовуємо ipAdres
+                .addConverterFactory(GsonConverterFactory.create())
+                .build()
+        }
+        return retrofitInstance!!
     }
 
-    // Динамічне створення Retrofit
-    val retrofit: Retrofit
-        get() {
-            if (retrofitInstance == null) {
-                retrofitInstance = Retrofit.Builder()
-                    .baseUrl(ipAdres)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-            }
-            return retrofitInstance!!
+    // Функція для оновлення IP
+    fun updateBaseUrl(newIp: String) {
+        var formattedUrl = newIp
+        if (!formattedUrl.startsWith("http://") && !formattedUrl.startsWith("https://")) {
+            formattedUrl = "http://$formattedUrl"
+        }
+        if (!formattedUrl.endsWith("/")) {
+            formattedUrl = "$formattedUrl/"
         }
 
-    // ВАЖЛИВО: замість "by lazy" тепер використовуємо "get()"
-    // Це гарантує, що при зміні IP всі API підхоплять нову адресу
+        // Якщо IP дійсно новий, оновлюємо адресу і скидаємо старий Retrofit
+        if (ipAdres != formattedUrl) {
+            ipAdres = formattedUrl
+            retrofitInstance = null // При наступному запиті getRetrofit() створить новий клієнт
+        }
+    }
+
+    // Всі твої API
     val authApi: AuthApi
-        get() = retrofit.create(AuthApi::class.java)
+        get() = getRetrofit().create(AuthApi::class.java)
 
     val ingredientApi: IngredientApi
-        get() = retrofit.create(IngredientApi::class.java)
+        get() = getRetrofit().create(IngredientApi::class.java)
 
     val categoryApi: CategoryApi
-        get() = retrofit.create(CategoryApi::class.java)
+        get() = getRetrofit().create(CategoryApi::class.java)
 
     val recipeApi: RecipeApi
-        get() = retrofit.create(RecipeApi::class.java)
+        get() = getRetrofit().create(RecipeApi::class.java)
 }

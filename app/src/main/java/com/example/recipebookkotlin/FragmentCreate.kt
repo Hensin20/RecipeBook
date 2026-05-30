@@ -21,6 +21,7 @@ import coil.load
 import com.example.recipebookkotlin.dto.IngredientDTO
 import com.example.recipebookkotlin.dto.RecipeCreateDTO
 import com.example.recipebookkotlin.network.ApiClient
+import com.example.recipebookkotlin.utils.ProfanityFilter
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,7 +38,6 @@ class FragmentCreate : Fragment() {
 
     private val ingredients = mutableListOf<Ingredient>()
 
-    // ДОДАНО: Списки для мульти-вибору категорій
     private var allCategoryNames = emptyArray<String>()
     private val selectedCategories = mutableListOf<String>()
 
@@ -73,32 +73,67 @@ class FragmentCreate : Fragment() {
             saveRecipe(view)
         }
 
-        // Ingredient
         setupIngredientActions(view)
         loadIngredientData(view)
-
-        // Category (ОНОВЛЕНО)
         loadCategoryData(view)
     }
 
     private fun saveRecipe(view: View) {
-        val title = view.findViewById<EditText>(R.id.editTextText_title).text.toString().trim()
-        val description = view.findViewById<EditText>(R.id.editTextText_description).text.toString().trim()
-        val instruction = view.findViewById<EditText>(R.id.editTextText_instruction).text.toString().trim()
+        val titleEdit = view.findViewById<EditText>(R.id.editTextText_title)
+        val descEdit = view.findViewById<EditText>(R.id.editTextText_description)
+        val instEdit = view.findViewById<EditText>(R.id.editTextText_instruction)
 
-        // ПЕРЕВІРКА: чи вибрали хоч одну категорію
-        if (title.isEmpty() || selectedCategories.isEmpty() || ingredients.isEmpty()) {
-            Toast.makeText(requireContext(), "Заповніть назву, виберіть категорію та додайте інгредієнти!", Toast.LENGTH_SHORT).show()
+        val title = titleEdit.text.toString().trim()
+        val description = descEdit.text.toString().trim()
+        val instruction = instEdit.text.toString().trim()
+
+        // 1. ПЕРЕВІРКА НА ЗАПОВНЕНІСТЬ
+        if (title.isEmpty() || description.isEmpty() || instruction.isEmpty() || selectedCategories.isEmpty() || ingredients.isEmpty()) {
+            Toast.makeText(requireContext(), "Заповніть усі поля, виберіть категорію та додайте інгредієнти!", Toast.LENGTH_SHORT).show()
             return
         }
 
+        // 2. РОЗУМНА ПЕРЕВІРКА НА ЦЕНЗУРУ З ПІДСВІЧУВАННЯМ
+        // Перевіряємо заголовок
+        val badTitle = ProfanityFilter.findProfanity(title)
+        if (badTitle != null) {
+            titleEdit.error = "Видаліть неприпустиме слово: $badTitle"
+            titleEdit.requestFocus() // Фокусуємо екран на помилці
+            return
+        }
+
+        // Перевіряємо опис
+        val badDesc = ProfanityFilter.findProfanity(description)
+        if (badDesc != null) {
+            descEdit.error = "Видаліть неприпустиме слово: $badDesc"
+            descEdit.requestFocus()
+            return
+        }
+
+        // Перевіряємо інструкцію
+        val badInst = ProfanityFilter.findProfanity(instruction)
+        if (badInst != null) {
+            instEdit.error = "Видаліть неприпустиме слово: $badInst"
+            instEdit.requestFocus()
+            return
+        }
+
+        // Перевіряємо вже додані інгредієнти
+        val allIngredientsText = ingredients.joinToString(" ") { it.name }
+        val badIng = ProfanityFilter.findProfanity(allIngredientsText)
+        if (badIng != null) {
+            Toast.makeText(requireContext(), "У ваших інгредієнтах є заборонене слово: $badIng", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        // 3. ЗБЕРЕЖЕННЯ (якщо текст чистий)
         val sharedPrefs = requireContext().getSharedPreferences("RecipeBookPrefs", Context.MODE_PRIVATE)
         val currentUsername = sharedPrefs.getString("USER_USERNAME", "Анонім") ?: "Анонім"
 
         val recipeDTO = RecipeCreateDTO(
             title = title,
             description = description,
-            categoryNames = selectedCategories, // ОНОВЛЕНО: передаємо СПИСОК категорій
+            categoryNames = selectedCategories,
             authorName = currentUsername,
             instruction = instruction,
             ingredients = ingredients.map { IngredientDTO(it.name, it.quantity) }
@@ -191,6 +226,14 @@ class FragmentCreate : Fragment() {
             val name = nameInput.text.toString().trim()
             val quantity = quantityInput.text.toString().trim()
 
+            // Перевірка при додаванні конкретного інгредієнта
+            val badName = ProfanityFilter.findProfanity(name)
+            if (badName != null) {
+                nameInput.error = "Неприпустиме слово: $badName"
+                nameInput.requestFocus()
+                return@setOnClickListener
+            }
+
             if (name.isNotEmpty() && quantity.isNotEmpty()) {
                 val newIngredient = Ingredient(name, quantity)
                 ingredients.add(newIngredient)
@@ -203,11 +246,9 @@ class FragmentCreate : Fragment() {
         }
     }
 
-    // ОНОВЛЕНО: Логіка для вибору КІЛЬКОХ категорій
     private fun loadCategoryData(view: View) {
         val tvCategory = view.findViewById<TextView>(R.id.textViewSelectCategory)
 
-        // 1. Завантажуємо категорії з сервера
         lifecycleScope.launch(Dispatchers.IO) {
             try {
                 val categories = ApiClient.categoryApi.getCategory()
@@ -217,14 +258,12 @@ class FragmentCreate : Fragment() {
             }
         }
 
-        // 2. Відкриваємо діалог при натисканні
         tvCategory.setOnClickListener {
             if (allCategoryNames.isEmpty()) {
                 Toast.makeText(context, "Категорії ще завантажуються...", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Масив галочок (true, якщо категорія вже є в нашому списку selectedCategories)
             val checkedItems = BooleanArray(allCategoryNames.size) { i ->
                 selectedCategories.contains(allCategoryNames[i])
             }
@@ -240,7 +279,6 @@ class FragmentCreate : Fragment() {
                     }
                 }
                 .setPositiveButton("Зберегти") { _, _ ->
-                    // Виводимо вибрані категорії на екран (через кому)
                     tvCategory.text = if (selectedCategories.isNotEmpty()) {
                         selectedCategories.joinToString(", ")
                     } else {

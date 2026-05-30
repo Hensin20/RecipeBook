@@ -15,7 +15,7 @@
             android:layout_margin="16dp"
             android:text="Всі рецепти"
             android:textSize="24sp"
-            android:textColor="@color/red"
+            android:textColor="@color/orange"
             android:gravity="center"
             android:fontFamily="@font/opensans_bold"/>
 
