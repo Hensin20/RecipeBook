@@ -96,4 +96,17 @@ interface RecipeApi {
         @Query("ingredients") ingredients: String
     ): List<RecipeDTO> // або Response<List<RecipeDTO>>, залежно від того, як у тебе налаштовано
 
+    @PUT("api/favorites/rename-collection")
+    suspend fun renameCollection(
+        @Query("username") username: String,
+        @Query("oldName") oldName: String,
+        @Query("newName") newName: String
+    )
+
+    @DELETE("api/favorites/delete-collection")
+    suspend fun deleteCollection(
+        @Query("username") username: String,
+        @Query("collectionName") collectionName: String
+    )
+
 }

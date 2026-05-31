@@ -5,22 +5,29 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.PopupMenu
 import android.widget.TextView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.recipebookkotlin.R
 import com.example.recipebookkotlin.dto.RecipeDTO
 
-// Допоміжна модель для папки
 data class FolderItem(
     val name: String,
     val recipes: List<RecipeDTO>,
-    var isExpanded: Boolean = false // Чи відкрита папка
+    var isExpanded: Boolean = false
 )
+
+// НОВИЙ ІНТЕРФЕЙС
+interface FolderActionListener {
+    fun onEdit(folderName: String)
+    fun onDelete(folderName: String)
+}
 
 class FolderAdapter(
     private var folders: List<FolderItem>,
-    private val onRecipeClick: (Long) -> Unit
+    private val onRecipeClick: (Long) -> Unit,
+    private val actionListener: FolderActionListener // ДОДАНО У КОНСТРУКТОР
 ) : RecyclerView.Adapter<FolderAdapter.FolderViewHolder>() {
 
     fun updateData(newFolders: List<FolderItem>) {
@@ -39,22 +46,32 @@ class FolderAdapter(
         holder.folderName.text = folder.name
         holder.recipeCount.text = "${folder.recipes.size} рецептів"
 
-        // Налаштовуємо внутрішній список рецептів
         val recipeAdapter = RecipeAdapter(folder.recipes, onRecipeClick)
         holder.nestedRecyclerView.layoutManager = LinearLayoutManager(holder.itemView.context)
         holder.nestedRecyclerView.adapter = recipeAdapter
 
-        // Встановлюємо стан (відкрито/закрито)
         val isExpanded = folder.isExpanded
         holder.nestedRecyclerView.visibility = if (isExpanded) View.VISIBLE else View.GONE
-
-        // Анімація стрілочки (якщо відкрито - дивиться вниз, закрито - вправо)
         holder.arrow.rotation = if (isExpanded) 90f else 0f
 
-        // Логіка кліку по шапці папки
         holder.header.setOnClickListener {
             folder.isExpanded = !folder.isExpanded
-            notifyItemChanged(position) // Оновлюємо тільки цю папку
+            notifyItemChanged(position)
+        }
+
+        // ДОДАНО: Логіка для кнопки меню
+        holder.menuIcon.setOnClickListener { view ->
+            val popup = PopupMenu(view.context, view)
+            popup.menu.add("Перейменувати")
+            popup.menu.add("Видалити")
+            popup.setOnMenuItemClickListener { item ->
+                when(item.title) {
+                    "Перейменувати" -> actionListener.onEdit(folder.name)
+                    "Видалити" -> actionListener.onDelete(folder.name)
+                }
+                true
+            }
+            popup.show()
         }
     }
 
@@ -65,6 +82,7 @@ class FolderAdapter(
         val folderName: TextView = itemView.findViewById(R.id.textViewFolderName)
         val recipeCount: TextView = itemView.findViewById(R.id.textViewRecipeCount)
         val arrow: ImageView = itemView.findViewById(R.id.imageViewArrow)
+        val menuIcon: ImageView = itemView.findViewById(R.id.imageViewMenu) // ДОДАНО
         val nestedRecyclerView: RecyclerView = itemView.findViewById(R.id.recyclerViewFolderRecipes)
     }
 }
