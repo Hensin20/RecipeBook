@@ -38,9 +38,10 @@ interface RecipeApi {
     @POST("/api/recipes/{id}/rate")
     suspend fun rateRecipe(
         @Path("id") id: Long,
-        @Query("userId") userId: Long, // <--- ДОДАЛИ ЦЕЙ ПАРАМЕТР
+        @Query("userId") userId: Long,
         @Query("rating") rating: Int
     ): Double
+
     @GET("/api/recipes/author/{username}")
     suspend fun getRecipesByAuthor(@Path("username") username: String): List<RecipeDTO>
 
@@ -52,28 +53,37 @@ interface RecipeApi {
     suspend fun addToFavorites(
         @Query("username") username: String,
         @Query("recipeId") recipeId: Long,
-        @Query("collectionName") collectionName: String // ДОДАНО
+        @Query("collectionName") collectionName: String
     )
 
+    // Видалити з закладок
     @DELETE("api/favorites/remove")
     suspend fun removeFromFavorites(
         @Query("username") username: String,
         @Query("recipeId") recipeId: Long,
-        @Query("collectionName") collectionName: String // ДОДАНО
+        @Query("collectionName") collectionName: String
     )
 
     // Отримати список усіх категорій
     @GET("/api/categories")
     suspend fun getAllCategories(): List<CategoryDTO>
 
-    @GET("/api/recipes/search-by-name") // <--- ВПИШИ "-by-name"
+    // Пошук за назвою
+    @GET("/api/recipes/search-by-name")
     suspend fun searchRecipes(
         @Query("query") query: String
     ): List<RecipeDTO>
+
     // Пошук рецептів за назвою категорії
     @GET("/api/recipes/search-by-category")
     suspend fun searchByCategory(
         @Query("category") category: String
+    ): List<RecipeDTO>
+
+    // Пошук за інгредієнтами
+    @GET("/api/recipes/search-by-ingredients")
+    suspend fun searchByIngredients(
+        @Query("ingredients") ingredients: String
     ): List<RecipeDTO>
 
     // Видалити рецепт
@@ -83,30 +93,29 @@ interface RecipeApi {
         @Query("userId") userId: Long
     ): Response<Void>
 
-    // Оновити рецепт
+
+    // --- ВИПРАВЛЕНИЙ МЕТОД ОНОВЛЕННЯ РЕЦЕПТА (З ФОТОГРАФІЯМИ) ---
+    @Multipart
     @PUT("/api/recipes/{id}")
-    suspend fun updateRecipe(
-        @Path("id") recipeId: Long,
+    suspend fun updateRecipeWithImages(
+        @Path("id") id: Long,
         @Query("userId") userId: Long,
-        @Body recipe: RecipeDTO
+        @Part("recipe") recipeJson: RequestBody,
+        @Part newImages: List<MultipartBody.Part>?
     ): Response<RecipeDTO>
 
-    @GET("/api/recipes/search-by-ingredients")
-    suspend fun searchByIngredients(
-        @Query("ingredients") ingredients: String
-    ): List<RecipeDTO> // або Response<List<RecipeDTO>>, залежно від того, як у тебе налаштовано
 
-    @PUT("api/favorites/rename-collection")
+    // --- ВИПРАВЛЕНІ ШЛЯХИ ДЛЯ ПАПОК ---
+    @PUT("api/favorites/rename")
     suspend fun renameCollection(
         @Query("username") username: String,
         @Query("oldName") oldName: String,
         @Query("newName") newName: String
-    )
+    ): Response<Unit>
 
-    @DELETE("api/favorites/delete-collection")
+    @DELETE("api/favorites/deleteCollection")
     suspend fun deleteCollection(
         @Query("username") username: String,
         @Query("collectionName") collectionName: String
-    )
-
+    ): Response<Unit>
 }

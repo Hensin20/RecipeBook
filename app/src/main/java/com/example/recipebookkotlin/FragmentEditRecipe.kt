@@ -19,6 +19,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+// Додані імпорти для нового синтаксису OkHttp
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+
 class FragmentEditRecipe : Fragment() {
 
     private var recipeId: Long = -1L
@@ -91,7 +96,6 @@ class FragmentEditRecipe : Fragment() {
                 val newIngredient = IngredientDTO(name = name, quantity = quantity)
                 ingredientList.add(newIngredient)
 
-                // Викликаємо наш новий красивий метод
                 updateIngredientList()
 
                 etIngredientName.text.clear()
@@ -171,7 +175,6 @@ class FragmentEditRecipe : Fragment() {
                     recipe.ingredients?.let { ingredients ->
                         ingredientList.clear()
                         ingredientList.addAll(ingredients)
-                        // Оновлюємо список інгредієнтів нашим новим методом
                         updateIngredientList()
                     }
 
@@ -214,12 +217,12 @@ class FragmentEditRecipe : Fragment() {
     private fun updateImagePreviews() {
         imagesContainer.removeAllViews()
 
-        existingImageUrls.forEach { url ->
+        // Використовуємо toList(), щоб уникнути помилки при видаленні елементів під час перебору
+        existingImageUrls.toList().forEach { url ->
             val imageView = ImageView(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(200, 200).apply { setMargins(8, 0, 8, 0) }
                 scaleType = ImageView.ScaleType.CENTER_CROP
 
-                // Виправляємо формування посилання
                 val baseUrl = ApiClient.ipAdres.trimEnd('/')
                 val fullUrl = "$baseUrl/uploads/$url"
 
@@ -229,15 +232,41 @@ class FragmentEditRecipe : Fragment() {
                     error(R.drawable.icon_add_photo)
                 }
             }
+
+            // Логіка видалення існуючого фото
+            imageView.setOnClickListener {
+                android.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Видалити фото?")
+                    .setPositiveButton("Так") { _, _ ->
+                        existingImageUrls.remove(url)
+                        updateImagePreviews() // Оновлюємо UI
+                    }
+                    .setNegativeButton("Ні", null)
+                    .show()
+            }
+
             imagesContainer.addView(imageView)
         }
 
-        selectedImageUris.forEach { uri ->
+        selectedImageUris.toList().forEach { uri ->
             val imageView = ImageView(requireContext()).apply {
                 layoutParams = LinearLayout.LayoutParams(200, 200).apply { setMargins(8, 0, 8, 0) }
                 scaleType = ImageView.ScaleType.CENTER_CROP
-                setImageURI(uri) // Локальні URI залишаємо як є, з ними проблем немає
+                setImageURI(uri)
             }
+
+            // Логіка видалення нового (тільки що вибраного) фото
+            imageView.setOnClickListener {
+                android.app.AlertDialog.Builder(requireContext())
+                    .setTitle("Видалити фото?")
+                    .setPositiveButton("Так") { _, _ ->
+                        selectedImageUris.remove(uri)
+                        updateImagePreviews() // Оновлюємо UI
+                    }
+                    .setNegativeButton("Ні", null)
+                    .show()
+            }
+
             imagesContainer.addView(imageView)
         }
     }
@@ -269,19 +298,46 @@ class FragmentEditRecipe : Fragment() {
             ingredients = ingredientList,
             authorName = "",
             averageRating = 0.0,
-            imageUrls = emptyList(),
+            imageUrls = existingImageUrls, // Передаємо список старих фото, які залишилися
             votesCount = 0
         )
 
+        // 1. Конвертуємо рецепт у JSON-рядок
+        val gson = com.google.gson.Gson()
+        val recipeJsonString = gson.toJson(updatedRecipe)
+
+        // НОВИЙ СИНТАКСИС OkHttp 4.x для JSON
+        val recipeRequestBody = recipeJsonString.toRequestBody("application/json".toMediaTypeOrNull())
+
+        // 2. Готуємо НОВІ фотографії до відправки
+        val newImageParts = mutableListOf<okhttp3.MultipartBody.Part>()
+
+        selectedImageUris.forEach { uri ->
+            val file = getFileFromUri(requireContext(), uri)
+            if (file != null) {
+                // НОВИЙ СИНТАКСИС OkHttp 4.x для Файлу
+                val requestFile = file.asRequestBody("image/*".toMediaTypeOrNull())
+                val body = okhttp3.MultipartBody.Part.createFormData("newImages", file.name, requestFile)
+                newImageParts.add(body)
+            }
+        }
+
         lifecycleScope.launch(Dispatchers.IO) {
             try {
-                val response = ApiClient.recipeApi.updateRecipe(recipeId, userId, updatedRecipe)
+                // 3. Відправляємо Multipart-запит на сервер
+                val response = ApiClient.recipeApi.updateRecipeWithImages(
+                    id = recipeId,
+                    userId = userId,
+                    recipeJson = recipeRequestBody,
+                    newImages = if (newImageParts.isEmpty()) null else newImageParts
+                )
+
                 withContext(Dispatchers.Main) {
                     if (response.isSuccessful) {
-                        Toast.makeText(requireContext(), "Рецепт оновлено!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(), "Рецепт успішно оновлено!", Toast.LENGTH_SHORT).show()
                         findNavController().popBackStack()
                     } else {
-                        Toast.makeText(requireContext(), "Сервер відмовив. Код: ${response.code()}", Toast.LENGTH_LONG).show()
+                        Toast.makeText(requireContext(), "Помилка сервера: ${response.code()}", Toast.LENGTH_LONG).show()
                     }
                 }
             } catch (e: Exception) {
@@ -289,6 +345,25 @@ class FragmentEditRecipe : Fragment() {
                     Toast.makeText(requireContext(), "Збій: ${e.message}", Toast.LENGTH_LONG).show()
                 }
             }
+        }
+    }
+
+    // Допоміжний метод для перетворення Uri (з галереї) у File (для відправки на сервер)
+    private fun getFileFromUri(context: Context, uri: Uri): java.io.File? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri)
+            val tempFile = java.io.File.createTempFile("upload_", ".jpg", context.cacheDir)
+            val outputStream = java.io.FileOutputStream(tempFile)
+
+            inputStream?.copyTo(outputStream)
+
+            inputStream?.close()
+            outputStream.close()
+
+            tempFile
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
     }
 }
